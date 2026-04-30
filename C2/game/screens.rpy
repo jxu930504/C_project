@@ -1514,8 +1514,8 @@ style nvl_button_text:
 
 screen nvl_black(dialogue, items=None):
     # 1. 滿版純黑背景
-    add Solid("#000000")
-
+    # add Solid("#000000")
+    add "images/main_menu.png"
     # 2. 放置在畫面正中央的文字容器
     vbox:
         align (0.5, 0.5)    # 整個區塊在畫面正中央
@@ -1528,7 +1528,7 @@ screen nvl_black(dialogue, items=None):
                 xalign 0.5       # 讓文字區塊本身置中
                 textalign 0.5    # 讓多行文字的排版置中
                 size gui.nvl_text_size          # 黑屏文字通常會稍微大一點，可自行調整
-                color "#ffffff"  # 純白字體
+                color "#000000"  # 純白字體
                 
         # 4. 顯示選單按鈕
         if items:
@@ -1547,6 +1547,7 @@ screen nvl_black(dialogue, items=None):
                         text_size gui.nvl_text_size
                         text_color "#888888"        # 預設灰色
                         text_hover_color "#ffffff"  # 滑鼠游標移過去變白色
+    add "gui/nvl.png"
 
 ## 放大圖
 screen enlarge_image(img_path):
