@@ -237,16 +237,15 @@ screen quick_menu():
             hover "gui/quick_menu_hover.png"
             selected_idle "gui/quick_menu_hover.png"
 
-            hotspot (142, 224, 71, 72) action Skip() alternate Skip(fast=True, confirm=True)
-            #hotspot (141, 309, 75, 72) action ShowMenu('save')
-            hotspot (141, 309, 75, 72) action [QuickSave(), Notify("進度已儲存！")]
-            hotspot (139, 399, 78, 72) action ShowMenu('main_menu')
-            hotspot (139, 488, 78, 74) action Preference("all mute", "toggle")
-            hotspot (141, 574, 75, 78) action ShowMenu("about")
-            hotspot (140, 667, 76, 71) action ShowMenu("help")
-            hotspot (140, 753, 75, 75) action ShowMenu("preferences")
-            hotspot (140, 844, 75, 74) action ShowMenu("load")
-            hotspot (138, 931, 79, 76) action Quit(confirm=False)  
+            hotspot (142, 224, 71, 72) action Skip() alternate Skip(fast=True, confirm=True) #快進
+            hotspot (141, 309, 75, 72) action [QuickSave(), Notify("進度已儲存！")]           #儲存     
+            hotspot (139, 399, 78, 72) action ShowMenu('main_menu')                          #主頁
+            hotspot (139, 488, 78, 74) action Preference("all mute", "toggle")               #禁音
+            hotspot (141, 574, 75, 78) action ShowMenu("about")                              #關於
+            hotspot (140, 667, 76, 71) action ShowMenu("help")                               #幫助
+            hotspot (140, 753, 75, 75) action ShowMenu("preferences")                        #設定
+            hotspot (140, 844, 75, 74) action ShowMenu("load")                               #載入
+            hotspot (138, 931, 79, 76) action Quit(confirm=False)                            #離開
 
 
 
@@ -524,22 +523,21 @@ style return_button:
 ## 這個畫面沒有什麼特別的，因此它也可以作為如何製作自訂螢幕的範例。
 ## TODO: 更新資訊
 screen about():
-
     tag menu
+    modal True
     imagemap:
         ground 'gui/About_idle.PNG'
         idle 'gui/About_idle.PNG'
         hover 'gui/About_hover.PNG'
 
-        hotspot (1751, 104, 71, 72) action Hide("about")
-
-        hotspot (142, 401, 71, 73) action ShowMenu("main_menu")
-        hotspot (139, 488, 78, 74) action Preference("all mute", "toggle")
-        hotspot (142, 581, 70, 70) action ShowMenu("about")
-        hotspot (142, 670, 71, 70) action ShowMenu("help")
-        hotspot (141, 758, 72, 71) action ShowMenu("preferences")
-        hotspot (142, 848, 72, 69) action ShowMenu("load")
-        hotspot (142, 936, 72, 73) action Quit(confirm=False)
+        hotspot (1751, 104, 71, 72) action If(main_menu, true=Hide("about"), false=Return())              # X
+        hotspot (142, 401, 71, 73) action If(main_menu, true=Hide("about"), false=ShowMenu("main_menu"))  # Home
+        hotspot (139, 488, 78, 74) action Preference("all mute", "toggle")  # Volume
+        hotspot (142, 581, 70, 70) action ShowMenu("about")                 # Abuot
+        hotspot (142, 670, 71, 70) action ShowMenu("help")                  # Help
+        hotspot (141, 758, 72, 71) action ShowMenu("preferences")           # Setting
+        hotspot (142, 848, 72, 69) action ShowMenu("load")                  # Load
+        hotspot (142, 936, 72, 73) action Quit(confirm=False)               # Quit
 
     ## 此 use 語句包含此畫面中的 game_menu 畫面。然後，vbox 子項將包含在
     ## game_menu 畫面內的視口內
@@ -582,7 +580,7 @@ style about_label_text:
 default current_page = 1 
 screen load():
     tag menu
-    
+    modal True
     imagemap:
         ground "gui/Load_idle[current_page].png"
         idle "gui/Load_idle[current_page].png"
@@ -593,8 +591,8 @@ screen load():
         # ==========================================
         # 你的基礎選單按鈕 (保留原本的)
         # ==========================================
-        hotspot (1751, 104, 71, 72) action Hide("load")
-        hotspot (142, 401, 71, 73) action ShowMenu("main_menu")
+        hotspot (1751, 104, 71, 72) action If(main_menu, true=Hide("load"), false=Return())
+        hotspot (142, 401, 71, 73) action If(main_menu, true=Hide("load"), false=ShowMenu("main_menu"))
         hotspot (139, 488, 78, 74) action Preference("all mute", "toggle")
         hotspot (142, 581, 70, 70) action ShowMenu("about")
         hotspot (142, 670, 71, 70) action ShowMenu("help")
@@ -674,7 +672,7 @@ screen load():
 screen preferences():
 
     tag menu
-
+    modal True
     imagemap:
         ground 'gui/setting_idle.PNG'
         idle 'gui/setting_idle.PNG'
@@ -689,15 +687,15 @@ screen preferences():
         hotspot (322, 622, 46, 48) action Preference("transitions", "toggle")
         hotspot (321, 835, 46, 46) action StylePreference("text_font", "Cubic") 
         hotspot (322, 898, 44, 46) action StylePreference("text_font", "SourceHan")
-        hotspot (1751, 104, 71, 72) action Hide("preferences")
 
-        hotspot (142, 401, 71, 73) action ShowMenu("main_menu")
-        hotspot (139, 488, 78, 74) action Preference("all mute", "toggle")
-        hotspot (142, 581, 70, 70) action ShowMenu("about")
-        hotspot (142, 670, 71, 70) action ShowMenu("help")
-        #hotspot (141, 758, 72, 71) action ShowMenu("preferences")
-        hotspot (142, 848, 72, 69) action ShowMenu("load")
-        hotspot (142, 936, 72, 73) action Quit(confirm=False)
+        hotspot (1751, 104, 71, 72) action If(main_menu, true=Hide("preferences"), false=Return())              # X
+        hotspot (142, 401, 71, 73) action If(main_menu, true=Hide("preferences"), false=ShowMenu("main_menu"))  # Home
+        hotspot (139, 488, 78, 74) action Preference("all mute", "toggle")  # Volume
+        hotspot (142, 581, 70, 70) action ShowMenu("about")                 # Abuot
+        hotspot (142, 670, 71, 70) action ShowMenu("help")                  # Help
+        #hotspot (141, 758, 72, 71) action ShowMenu("preferences")          # Setting
+        hotspot (142, 848, 72, 69) action ShowMenu("load")                  # Load
+        hotspot (142, 936, 72, 73) action Quit(confirm=False)               # Quit
 
         bar pos (843, 242) value Preference("font size") style "pref_slider"
         bar pos (841, 455) value Preference("text speed") style "pref_slider"
@@ -884,19 +882,20 @@ style history_label_text:
 screen help():
 
     tag menu
+    modal True
     imagemap:
         ground 'gui/Help_idle.PNG'
         idle 'gui/Help_idle.PNG'
         hover 'gui/Help_hover.PNG'
 
-        hotspot (1751, 104, 71, 72) action Hide("help")
-        hotspot (142, 401, 71, 73) action ShowMenu("main_menu")
-        hotspot (139, 488, 78, 74) action Preference("all mute", "toggle")
-        hotspot (142, 581, 70, 70) action ShowMenu("about")
-        hotspot (142, 670, 71, 70) action ShowMenu("help")
-        hotspot (141, 758, 72, 71) action ShowMenu("preferences")
-        hotspot (142, 848, 72, 69) action ShowMenu("load")
-        hotspot (142, 936, 72, 73) action Quit(confirm=False)
+        hotspot (1751, 104, 71, 72) action If(main_menu, true=Hide("help"), false=Return())              # X
+        hotspot (142, 401, 71, 73) action If(main_menu, true=Hide("help"), false=ShowMenu("main_menu"))  # Home
+        hotspot (139, 488, 78, 74) action Preference("all mute", "toggle")  # Volume
+        hotspot (142, 581, 70, 70) action ShowMenu("about")                 # Abuot
+        hotspot (142, 670, 71, 70) action ShowMenu("help")                  # Help
+        hotspot (141, 758, 72, 71) action ShowMenu("preferences")           # Setting
+        hotspot (142, 848, 72, 69) action ShowMenu("load")                  # Load
+        hotspot (142, 936, 72, 73) action Quit(confirm=False)               # Quit
 
 
 
