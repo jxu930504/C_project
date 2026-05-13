@@ -237,10 +237,11 @@ screen quick_menu():
             hover "gui/quick_menu_hover.png"
             selected_idle "gui/quick_menu_hover.png"
 
-            hotspot (140, 220, 76, 69) action Skip() alternate Skip(fast=True, confirm=True)
-            hotspot (141, 309, 75, 72) action ShowMenu('save')
+            hotspot (142, 224, 71, 72) action Skip() alternate Skip(fast=True, confirm=True)
+            #hotspot (141, 309, 75, 72) action ShowMenu('save')
+            hotspot (141, 309, 75, 72) action [QuickSave(), Notify("進度已儲存！")]
             hotspot (139, 399, 78, 72) action ShowMenu('main_menu')
-            #hotspot (139, 488, 78, 74) action
+            hotspot (139, 488, 78, 74) action Preference("all mute", "toggle")
             hotspot (141, 574, 75, 78) action ShowMenu("about")
             hotspot (140, 667, 76, 71) action ShowMenu("help")
             hotspot (140, 753, 75, 75) action ShowMenu("preferences")
@@ -270,14 +271,14 @@ style quick_button:
 style quick_button_text:
     properties gui.text_properties("quick_button")
 
-
 ################################################################################
-## 主選單和遊戲選單畫面
+## Main and Game Menu Screens
 ################################################################################
 
-## 導覽畫面 ########################################################################
+## Navigation screen ###########################################################
 ##
-## 此畫面包含在主選單和遊戲選單中，並提供其他選單的導覽以及開始遊戲的導覽。
+## This screen is included in the main and game menus, and provides navigation
+## to other menus, and to start the game.
 
 screen navigation():
 
@@ -291,37 +292,37 @@ screen navigation():
 
         if main_menu:
 
-            textbutton _("開始") action Start()
+            textbutton _("Start") action Start()
 
         else:
 
-            textbutton _("歷史") action ShowMenu("history")
+            textbutton _("History") action ShowMenu("history")
 
-            textbutton _("儲存") action ShowMenu("save")
+            textbutton _("Save") action ShowMenu("save")
 
-        textbutton _("載入") action ShowMenu("load")
+        textbutton _("Load") action ShowMenu("load")
 
-        textbutton _("設定") action ShowMenu("preferences")
+        textbutton _("Preferences") action ShowMenu("preferences")
 
         if _in_replay:
 
-            textbutton _("結束回想") action EndReplay(confirm=True)
+            textbutton _("End Replay") action EndReplay(confirm=True)
 
         elif not main_menu:
 
-            textbutton _("標題畫面") action MainMenu()
+            textbutton _("Main Menu") action MainMenu()
 
-        textbutton _("關於") action ShowMenu("about")
+        textbutton _("About") action ShowMenu("about")
 
         if renpy.variant("pc") or (renpy.variant("web") and not renpy.variant("mobile")):
 
-            ## 幫助對於行動裝置來說是不必要或不相關的。
-            textbutton _("説明") action ShowMenu("help")
+            ## Help isn't necessary or relevant to mobile devices.
+            textbutton _("Help") action ShowMenu("help")
 
         if renpy.variant("pc"):
 
-            ## 結束按鈕在 iOS 上被禁止，在 Android 和 Web 上則不必要。
-            textbutton _("離開") action Quit(confirm=not main_menu)
+            ## The quit button is banned on iOS and unnecessary on Android and Web.
+            textbutton _("Quit") action Quit(confirm=not main_menu)
 
 
 style navigation_button is gui_button
@@ -346,12 +347,13 @@ screen main_menu():
         ground "gui/main_menu_idle.png"
         idle "gui/main_menu_idle.png"
         hover "gui/main_menu_hover.png"
-        hotspot (494, 487, 195, 101) action Start()
-        hotspot (1112, 301, 148, 84) action ShowMenu("load")
-        hotspot (1114, 409, 140, 74) action ShowMenu("preferences")
-        hotspot (1114, 513, 142, 77) action ShowMenu("about")
-        hotspot (1104, 618, 158, 82) action ShowMenu("help")
-        hotspot (1110, 716, 146, 82) action Quit(confirm=False)
+        hotspot (491, 426, 198, 104) action Start()
+        hotspot (497, 590, 200, 100) action Continue()
+        hotspot (1104, 293, 158, 94) action ShowMenu("load")
+        hotspot (1106, 399, 154, 94) action ShowMenu("preferences")
+        hotspot (1108, 507, 144, 85) action ShowMenu("about")
+        hotspot (1106, 610, 154, 90) action ShowMenu("help")
+        hotspot (1104, 714, 160, 94) action Quit(confirm=False)
 
 
 
@@ -529,13 +531,15 @@ screen about():
         idle 'gui/About_idle.PNG'
         hover 'gui/About_hover.PNG'
 
-        hotspot (1725, 106, 92, 94) action Hide("about")
+        hotspot (1751, 104, 71, 72) action Hide("about")
 
-        hotspot (114, 502, 103, 97) action ShowMenu("about")
-        hotspot (117, 606, 98, 95) action ShowMenu("help")
-        hotspot (116, 709, 101, 94) action ShowMenu("preferences")
-        hotspot (118, 813, 98, 90) action ShowMenu("load")
-        hotspot (118, 913, 98, 94) action Quit(confirm=False)
+        hotspot (142, 401, 71, 73) action ShowMenu("main_menu")
+        hotspot (139, 488, 78, 74) action Preference("all mute", "toggle")
+        hotspot (142, 581, 70, 70) action ShowMenu("about")
+        hotspot (142, 670, 71, 70) action ShowMenu("help")
+        hotspot (141, 758, 72, 71) action ShowMenu("preferences")
+        hotspot (142, 848, 72, 69) action ShowMenu("load")
+        hotspot (142, 936, 72, 73) action Quit(confirm=False)
 
     ## 此 use 語句包含此畫面中的 game_menu 畫面。然後，vbox 子項將包含在
     ## game_menu 畫面內的視口內
@@ -573,168 +577,93 @@ style about_label_text:
 ## https://www.renpy.org/doc/html/screen_special.html#save https://
 ## www.renpy.org/doc/html/screen_special.html#load
 
-screen save():
-
-    tag menu
-
-    imagemap:
-        ground 'gui/Load_idle.PNG'
-        idle 'gui/Load_idle.PNG'
-        hover 'gui/Load_hover.PNG'
-        selected_idle 'gui/Load_selected_idle.PNG'
-        selected_hover 'gui/Load_selected_hover.PNG'
-
-        hotspot (1725, 106, 92, 94) action Hide("save")
-
-        hotspot (114, 502, 103, 97) action ShowMenu("about")
-        hotspot (117, 606, 98, 95) action ShowMenu("help")
-        hotspot (116, 709, 101, 94) action ShowMenu("preferences")
-        hotspot (118, 813, 98, 90) action ShowMenu("load")
-        hotspot (118, 913, 98, 94) action Quit(confirm=False)
 
 
+default current_page = 1 
 screen load():
-
     tag menu
+    
     imagemap:
-        ground 'gui/Load_idle.PNG'
-        idle 'gui/Load_idle.PNG'
-        hover 'gui/Load_hover.PNG'
-        selected_idle 'gui/Load_selected_idle.PNG'
-        selected_hover 'gui/Load_selected_hover.PNG'
+        ground "gui/Load_idle[current_page].png"
+        idle "gui/Load_idle[current_page].png"
+        hover "gui/Load_hover[current_page].png"
+        selected_idle "gui/Load_selected_idle[current_page].png"
+        selected_hover "gui/Load_selected_hover[current_page].png"
 
-        hotspot (1725, 106, 92, 94) action Hide("load")
+        # ==========================================
+        # 你的基礎選單按鈕 (保留原本的)
+        # ==========================================
+        hotspot (1751, 104, 71, 72) action Hide("load")
+        hotspot (142, 401, 71, 73) action ShowMenu("main_menu")
+        hotspot (139, 488, 78, 74) action Preference("all mute", "toggle")
+        hotspot (142, 581, 70, 70) action ShowMenu("about")
+        hotspot (142, 670, 71, 70) action ShowMenu("help")
+        hotspot (141, 758, 72, 71) action ShowMenu("preferences")
+        hotspot (142, 848, 72, 69) action ShowMenu("load")
+        hotspot (142, 936, 72, 73) action Quit(confirm=False)
 
-        hotspot (114, 502, 103, 97) action ShowMenu("about")
-        hotspot (117, 606, 98, 95) action ShowMenu("help")
-        hotspot (116, 709, 101, 94) action ShowMenu("preferences")
-        hotspot (118, 813, 98, 90) action ShowMenu("load")
-        hotspot (118, 913, 98, 94) action Quit(confirm=False)
-    use file_slots(_("載入"))
+        hotspot (982, 911, 28, 52) action SetVariable("current_page", 1)
+        hotspot (1026, 915, 30, 44) action SetVariable("current_page", 2)
+        hotspot (1076, 913, 30, 48) action SetVariable("current_page", 3)
 
+        if current_page == 1: # 第一章
+            
+            if persistent.unlocked_ch1_0:
+                hotspot (342, 479, 227, 133) action [Start("CH1_0"), SelectedIf(True)]
+            if persistent.unlocked_ch1_1:
+                hotspot (639, 475, 230, 137) action [Start("CH1_1"), SelectedIf(True)]
+            if persistent.unlocked_ch1_2:
+                hotspot (941, 379, 231, 136) action [Start("CH1_2"), SelectedIf(True)]
+            if persistent.unlocked_ch1_3:
+                hotspot (1242, 475, 229, 141) action [Start("CH1_3"), SelectedIf(True)]
+            if persistent.unlocked_ch1_BE1:
+                hotspot (941, 574, 231, 140) action [Start("CH1_BE1"), SelectedIf(True)]
+            if persistent.unlocked_ch2_1:
+                hotspot (1545, 477, 228, 133) action [SetVariable("current_page", 2), SelectedIf(True)]
 
-screen file_slots(title):
+        elif current_page == 2: # 第二章
+            if persistent.unlocked_ch2_1:
+                hotspot (278, 477, 227, 131) action [Start("CH2_1"), SelectedIf(True)]
+            if persistent.unlocked_ch2_2 :
+                hotspot (539, 475, 224, 133) action [Start("CH2_2"), SelectedIf(True)]
+            if persistent.unlocked_ch2_3 :
+                hotspot (799, 389, 225, 132) action [Start("CH2_3"), SelectedIf(True)]
+            if persistent.unlocked_ch2_4 :
+                hotspot (1058, 479, 220, 129) action [Start("CH2_4"), SelectedIf(True)]
+            if persistent.unlocked_ch2_5 :
+                hotspot (1312, 387, 231, 138) action [Start("CH2_5"), SelectedIf(True)]
+            if persistent.unlocked_ch2_BE1 :
+                hotspot (801, 564, 229, 134) action [Start("CH2_BE1"), SelectedIf(True)]
+            if persistent.unlocked_ch2_BE2 :
+                hotspot (1316, 564, 229, 136) action [Start("CH2_BE2"), SelectedIf(True)]
+            if persistent.unlocked_ch3_1:
+                hotspot (1579, 473, 218, 135) action [SetVariable("current_page", 3), SelectedIf(True)]
 
-    default page_name_value = FilePageNameInputValue(pattern=_("頁面 {}"), auto=_("自動儲存"), quick=_("快速儲存"))
-
-    use game_menu(title):
-
-        fixed:
-
-            ## 這確保輸入將在任何按鈕之前獲得輸入事件。
-            order_reverse True
-
-            ## 頁面名稱，可以透過點選按鈕進行編輯。
-            button:
-                style "page_label"
-
-                key_events True
-                xalign 0.5
-                action page_name_value.Toggle()
-
-                input:
-                    style "page_label_text"
-                    value page_name_value
-
-            ## 存檔槽的網格。
-            grid gui.file_slot_cols gui.file_slot_rows:
-                style_prefix "slot"
-
-                xalign 0.5
-                yalign 0.5
-
-                spacing gui.slot_spacing
-
-                for i in range(gui.file_slot_cols * gui.file_slot_rows):
-
-                    $ slot = i + 1
-
-                    button:
-                        action FileAction(slot)
-
-                        has vbox
-
-                        add FileScreenshot(slot) xalign 0.5
-
-                        text FileTime(slot, format=_("{#file_time}%A, %B %d %Y, %H:%M"), empty=_("空槽")):
-                            style "slot_time_text"
-
-                        text FileSaveName(slot):
-                            style "slot_name_text"
-
-                        key "save_delete" action FileDelete(slot)
-
-            ## 存取其他頁面的按鈕。
-            vbox:
-                style_prefix "page"
-
-                xalign 0.5
-                yalign 1.0
-
-                hbox:
-                    xalign 0.5
-
-                    spacing gui.page_spacing
-
-                    textbutton _("<") action FilePagePrevious()
-                    key "save_page_prev" action FilePagePrevious()
-
-                    if config.has_autosave:
-                        textbutton _("{#auto_page}A") action FilePage("auto")
-
-                    if config.has_quicksave:
-                        textbutton _("{#quick_page}Q") action FilePage("quick")
-
-                    ## range(1, 10) 給出從 1 到 9 的數字。
-                    for page in range(1, 10):
-                        textbutton "[page]" action FilePage(page)
-
-                    textbutton _(">") action FilePageNext()
-                    key "save_page_next" action FilePageNext()
-
-                if config.has_sync:
-                    if CurrentScreenName() == "save":
-                        textbutton _("上傳同步"):
-                            action UploadSync()
-                            xalign 0.5
-                    else:
-                        textbutton _("下載同步"):
-                            action DownloadSync()
-                            xalign 0.5
-
-
-style page_label is gui_label
-style page_label_text is gui_label_text
-style page_button is gui_button
-style page_button_text is gui_button_text
-
-style slot_button is gui_button
-style slot_button_text is gui_button_text
-style slot_time_text is slot_button_text
-style slot_name_text is slot_button_text
-
-style page_label:
-    xpadding 75
-    ypadding 5
-    xalign 0.5
-
-style page_label_text:
-    textalign 0.5
-    layout "subtitle"
-    hover_color gui.hover_color
-
-style page_button:
-    properties gui.button_properties("page_button")
-
-style page_button_text:
-    properties gui.text_properties("page_button")
-
-style slot_button:
-    properties gui.button_properties("slot_button")
-
-style slot_button_text:
-    properties gui.text_properties("slot_button")
-
+        elif current_page == 3: # 第三章
+            if persistent.unlocked_ch3_1:
+                hotspot (282, 477, 227, 133) action [Start("CH3_1"), SelectedIf(True)]
+            if persistent.unlocked_ch3_2 :
+                hotspot (607, 476, 224, 133) action [Start("CH3_2"), SelectedIf(True)]
+            if persistent.unlocked_ch3_3 :
+                hotspot (929, 480, 225, 137) action [Start("CH3_3"), SelectedIf(True)]
+            if persistent.unlocked_ch3_4 :
+                hotspot (1254, 480, 225, 133) action [Start("CH3_4"), SelectedIf(True)]
+            if persistent.unlocked_ch3_5 :
+                hotspot (1577, 480, 224, 129) action [Start("CH3_5"), SelectedIf(True)]
+            if persistent.unlocked_ch3_BE1 :
+                hotspot (607, 127, 222, 134) action [Start("CH3_BE1"), SelectedIf(True)]
+            if persistent.unlocked_ch3_BE2 :
+                hotspot (605, 304, 224, 138) action [Start("CH3_BE2"), SelectedIf(True)]
+            if persistent.unlocked_ch3_BE3 :
+                hotspot (605, 647, 222, 134) action [Start("CH3_BE3"), SelectedIf(True)]
+            if persistent.unlocked_ch3_BE4 :
+                hotspot (605, 814, 224, 136) action [Start("CH3_BE4"), SelectedIf(True)]
+            if persistent.unlocked_ch3_BE5 :
+                hotspot (927, 649, 223, 136) action [Start("CH3_BE5"), SelectedIf(True)]
+            if persistent.unlocked_ch3_GE1 :
+                hotspot (1252, 306, 223, 132) action [Start("CH3_GE1"), SelectedIf(True)]
+            if persistent.unlocked_ch3_GE2 :
+                hotspot (1252, 643, 227, 140) action [Start("CH3_GE2"), SelectedIf(True)]
 
 ## 首選項畫面 #######################################################################
 ##
@@ -753,18 +682,22 @@ screen preferences():
         selected_idle 'gui/setting_hover.PNG'
         #selected_hover 'gui/setting_hover.PNG'
 
-        hotspot (322, 258, 58, 55) action Preference("display", "window")
-        hotspot (322, 329, 54, 52) action Preference("display", "fullscreen")
-        hotspot (322, 620, 56, 52) action Preference("skip", "toggle")
-        hotspot (322, 690, 52, 56) action Preference("after choices", "toggle")
-        hotspot (324, 760, 52, 51) action Preference("transitions", "toggle")
-        hotspot (1725, 106, 92, 94) action Hide("preferences")
+        hotspot (322, 239, 47, 46) action Preference("display", "window")
+        hotspot (322, 303, 45, 47) action Preference("display", "fullscreen")
+        hotspot (321, 494, 48, 49) action Preference("skip", "toggle")
+        hotspot (321, 559, 47, 47) action Preference("after choices", "toggle")
+        hotspot (322, 622, 46, 48) action Preference("transitions", "toggle")
+        hotspot (321, 835, 46, 46) action StylePreference("text_font", "Cubic") 
+        hotspot (322, 898, 44, 46) action StylePreference("text_font", "SourceHan")
+        hotspot (1751, 104, 71, 72) action Hide("preferences")
 
-        hotspot (114, 502, 103, 97) action ShowMenu("about")
-        hotspot (117, 606, 98, 95) action ShowMenu("help")
-        #hotspot (116, 709, 101, 94) action ShowMenu("preferences")
-        hotspot (118, 813, 98, 90) action ShowMenu("load")
-        hotspot (118, 913, 98, 94) action Quit(confirm=False)
+        hotspot (142, 401, 71, 73) action ShowMenu("main_menu")
+        hotspot (139, 488, 78, 74) action Preference("all mute", "toggle")
+        hotspot (142, 581, 70, 70) action ShowMenu("about")
+        hotspot (142, 670, 71, 70) action ShowMenu("help")
+        #hotspot (141, 758, 72, 71) action ShowMenu("preferences")
+        hotspot (142, 848, 72, 69) action ShowMenu("load")
+        hotspot (142, 936, 72, 73) action Quit(confirm=False)
 
         bar pos (843, 242) value Preference("font size") style "pref_slider"
         bar pos (841, 455) value Preference("text speed") style "pref_slider"
@@ -782,82 +715,7 @@ init -5 python:
     style.pref_slider.xmaximum =  243*3
     style.pref_slider.left_bar =  Frame("gui/slider/set_Slider_left.png")
     style.pref_slider.right_bar =  Frame("gui/slider/Set_Slider_right.png")
-    #3114 243
-    """
-    use game_menu(_("設定"), scroll="viewport"):
-
-        vbox:
-
-            hbox:
-                box_wrap True
-
-                if renpy.variant("pc") or renpy.variant("web"):
-
-                    vbox:
-                        style_prefix "radio"
-                        label _("顯示")
-                        textbutton _("視窗") action Preference("display", "window")
-                        textbutton _("全螢幕") action Preference("display", "fullscreen")
-
-                vbox:
-                    style_prefix "check"
-                    label _("略過")
-                    textbutton _("未讀文字") action Preference("skip", "toggle")
-                    textbutton _("選擇後") action Preference("after choices", "toggle")
-                    textbutton _("過渡") action InvertSelected(Preference("transitions", "toggle"))
-
-                ## 可以在此處新增 "radio_pref" 或 "check_pref" 類型的其他 vbox，
-                ## 以新增其他建立者定義的首選項。
-
-            null height (4 * gui.pref_spacing)
-
-            hbox:
-                style_prefix "slider"
-                box_wrap True
-
-                vbox:
-                    label _("文字大小")
-                    bar value Preference("font size")
-
-                    label _("文字顯示速度")
-                    bar value Preference("text speed")
-
-                    label _("自動前進時間")
-                    bar value Preference("auto-forward time")
-
-                vbox:
-
-                    if config.has_music:
-                        label _("音樂音量")
-                        hbox:
-                            bar value Preference("music volume")
-
-                    if config.has_sound:
-
-                        label _("音效音量")
-                        hbox:
-                            bar value Preference("sound volume")
-
-                            if config.sample_sound:
-                                textbutton _("測試") action Play("sound", config.sample_sound)
-
-
-                    if config.has_voice:
-                        label _("語音音量")
-
-                        hbox:
-                            bar value Preference("voice volume")
-
-                            if config.sample_voice:
-                                textbutton _("測試") action Play("voice", config.sample_voice)
-
-                    if config.has_music or config.has_sound or config.has_voice:
-                        null height gui.pref_spacing
-
-                        textbutton _("全部靜音"):
-                            action Preference("all mute", "toggle")
-                            style "mute_all_button"
-    """
+    
 
 style pref_label is gui_label
 style pref_label_text is gui_label_text
@@ -1026,161 +884,20 @@ style history_label_text:
 screen help():
 
     tag menu
+    imagemap:
+        ground 'gui/Help_idle.PNG'
+        idle 'gui/Help_idle.PNG'
+        hover 'gui/Help_hover.PNG'
 
-    default device = "keyboard"
+        hotspot (1751, 104, 71, 72) action Hide("help")
+        hotspot (142, 401, 71, 73) action ShowMenu("main_menu")
+        hotspot (139, 488, 78, 74) action Preference("all mute", "toggle")
+        hotspot (142, 581, 70, 70) action ShowMenu("about")
+        hotspot (142, 670, 71, 70) action ShowMenu("help")
+        hotspot (141, 758, 72, 71) action ShowMenu("preferences")
+        hotspot (142, 848, 72, 69) action ShowMenu("load")
+        hotspot (142, 936, 72, 73) action Quit(confirm=False)
 
-    use game_menu(_("説明"), scroll="viewport"):
-
-        style_prefix "help"
-
-        vbox:
-            spacing 23
-
-            hbox:
-
-                textbutton _("鍵盤") action SetScreenVariable("device", "keyboard")
-                textbutton _("滑鼠") action SetScreenVariable("device", "mouse")
-
-                if GamepadExists():
-                    textbutton _("遊戲手柄") action SetScreenVariable("device", "gamepad")
-
-            if device == "keyboard":
-                use keyboard_help
-            elif device == "mouse":
-                use mouse_help
-            elif device == "gamepad":
-                use gamepad_help
-        #hotspot (114, 502, 103, 97) action ShowMenu("about")
-        #hotspot (117, 606, 98, 95) action ShowMenu("help")
-        #hotspot (116, 709, 101, 94) action ShowMenu("preferences")
-        #hotspot (118, 813, 98, 90) action ShowMenu("load")
-        #hotspot (118, 913, 98, 94) action Quit(confirm=False)
-
-
-screen keyboard_help():
-
-    hbox:
-        label _("回車")
-        text _("推進對話並啟動介面。")
-
-    hbox:
-        label _("空格")
-        text _("無需選擇即可推進對話。")
-
-    hbox:
-        label _("方向鍵")
-        text _("導覽介面。")
-
-    hbox:
-        label _("結束鍵")
-        text _("存取遊戲選單。")
-
-    hbox:
-        label _("控制鍵")
-        text _("按住時跳過對話。")
-
-    hbox:
-        label _("製表鍵")
-        text _("保持對話跳過。")
-
-    hbox:
-        label _("上翻頁鍵")
-        text _("回滾到之前的對話。")
-
-    hbox:
-        label _("下翻頁鍵")
-        text _("前進到稍後的對話。")
-
-    hbox:
-        label "H"
-        text _("隱藏使用者介面。")
-
-    hbox:
-        label "S"
-        text _("截取螢幕截圖。")
-
-    hbox:
-        label "V"
-        text _("切換輔助 {a=https://www.renpy.org/l/voicing} Self-Vocing {/a}.")
-
-    hbox:
-        label "Shift+A"
-        text _("打開輔助功能選單")
-
-
-screen mouse_help():
-
-    hbox:
-        label _("左鍵")
-        text _("推進對話並啟動介面。")
-
-    hbox:
-        label _("中鍵")
-        text _("隱藏使用者介面。")
-
-    hbox:
-        label _("右鍵")
-        text _("存取遊戲選單。")
-
-    hbox:
-        label _("滑鼠滾輪向上")
-        text _("回滾到之前的對話。")
-
-    hbox:
-        label _("滑鼠滾輪向下")
-        text _("前進到稍後的對話。")
-
-
-screen gamepad_help():
-
-    hbox:
-        label _("右扳機鍵 \nA/ 底鍵")
-        text _("推進對話並啟動介面。")
-
-    hbox:
-        label _("左扳機 \n 左肩鍵")
-        text _("回滾到之前的對話。")
-
-    hbox:
-        label _("右肩鍵")
-        text _("前進到稍後的對話。")
-
-    hbox:
-        label _("十字鍵，搖桿")
-        text _("導覽介面。")
-
-    hbox:
-        label _("開始，指南，B/右鍵")
-        text _("存取遊戲選單。")
-
-    hbox:
-        label _("Y/頂鍵")
-        text _("隱藏使用者介面。")
-
-    textbutton _("矯正") action GamepadCalibrate()
-
-
-style help_button is gui_button
-style help_button_text is gui_button_text
-style help_label is gui_label
-style help_label_text is gui_label_text
-style help_text is gui_text
-
-style help_button:
-    properties gui.button_properties("help_button")
-    xmargin 12
-
-style help_button_text:
-    properties gui.text_properties("help_button")
-
-style help_label:
-    xsize 375
-    right_padding 30
-
-style help_label_text:
-    size gui.text_size
-    xalign 1.0
-    textalign 1.0
 
 
 

@@ -55,13 +55,13 @@ define gui.interface_text_color = '#404040'
 ## 字形和字形大小 #####################################################################
 
 ## 用於遊戲內文字的字形
-define gui.text_font = "SourceHanSansLite.ttf"
+define gui.text_font = "Cubic_11.ttf"#"SourceHanSansLite.ttf"
 
 ## 用於角色名稱的字形
-define gui.name_text_font = "SourceHanSansLite.ttf"
+define gui.name_text_font = "Cubic_11.ttf"#"SourceHanSansLite.ttf"
 
 ## 用於遊戲外文字的字形
-define gui.interface_text_font = "SourceHanSansLite.ttf"
+define gui.interface_text_font = "Cubic_11.ttf"#"SourceHanSansLite.ttf"
 
 ## 正常對話文字的大小
 define gui.text_size = 33
@@ -452,3 +452,16 @@ init python:
 
         gui.nvl_button_width = 1860
         gui.nvl_button_xpos = 30
+
+
+        #init -1 python:
+
+    # === 當玩家選擇 Cubic 時，把預設、對話、名字的字體都換成 Cubic_11.ttf ===
+    renpy.register_style_preference("text_font", "Cubic", style.default, "font", "Cubic_11.ttf")
+    renpy.register_style_preference("text_font", "Cubic", style.say_dialogue, "font", "Cubic_11.ttf")
+    renpy.register_style_preference("text_font", "Cubic", style.say_label, "font", "Cubic_11.ttf")
+    
+    # === 當玩家選擇 SourceHan 時，把預設、對話、名字的字體都換成 SourceHanSansLite.ttf ===
+    renpy.register_style_preference("text_font", "SourceHan", style.default, "font", "SourceHanSansLite.ttf")
+    renpy.register_style_preference("text_font", "SourceHan", style.say_dialogue, "font", "SourceHanSansLite.ttf")
+    renpy.register_style_preference("text_font", "SourceHan", style.say_label, "font", "SourceHanSansLite.ttf")
