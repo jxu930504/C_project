@@ -10,7 +10,7 @@ image typing_cursor:
 
 init python:
     def type_sound(event, interact=True, **kwargs): #打字音
-        if event == "begin":
+        if event == "begin": #TODO 待修改
             # 確保總行數大於 0，避免發生除以零的數學錯誤
             if store.nvl_total_lines > 0:
                 # 自動計算這行對話佔全部的百分之幾
@@ -35,6 +35,7 @@ init python:
             renpy.music.stop(channel="sound")
     
     #引入C函式
+    # TODO 重新編譯
     import ctypes
     import os
 
@@ -52,6 +53,17 @@ init python:
     except Exception as e:
         dll_loaded = False
 
+    #清空存檔
+    def reset_all_progress():
+        # 清除所有的 persistent 資料
+        persistent._clear()
+        
+        # 強制存檔，確保清除狀態被記錄
+        renpy.save_persistent()
+        
+        # 重新啟動遊戲，回到主選單
+        renpy.full_restart()
+
 
     
         
@@ -60,12 +72,12 @@ init python:
 default nvl_progress = 0.0      # 當前進度
 default nvl_total_lines = 10    # 預設總行數 (防止錯誤用)
 # 劇情變數
-default pet = "dog"
-default Owner = 1
-default pass_game =0
-default help_2 = 0
+default persistent.pet = "dog"
+default persistent.Owner = 1 #1:隊長 2:隊醫 3:沃寧/拉札 4:奧金 5:布爾金
+default persistent.pass_game =0
+default persistent.help_2 = 0
 # 章節進度
-default persistent.unlocked_ch1_0 = False
+default persistent.unlocked_ch1_0 = True
 default persistent.unlocked_ch1_1 = False
 default persistent.unlocked_ch1_2 = False
 default persistent.unlocked_ch1_3 = False
@@ -132,7 +144,7 @@ label CH1_0:
     scene intro_3
     nvl_dark "看著看著，"
     nvl_dark "我不知不覺睡著了。"
-label CH1_1: #荒野求生
+label CH1_1:    #荒野求生
     $ persistent.unlocked_ch1_1 = True
     nvl clear
     scene game_ch1
@@ -151,10 +163,10 @@ label CH1_1: #荒野求生
     nvl_narrator "我怎麼變成了____"
     menu:
         "小貓":
-            $ pet = "cat"
+            $ persistent.pet = "cat"
             nvl_narrator "我竟然變成了一隻貓!"
         "小狗":
-            $ pet = "dog"
+            $ persistent.pet = "dog"
             nvl_narrator "我竟然變成了一隻狗!"
     nvl_narrator "(咕嚕咕嚕…)"
     nvl_narrator "我的肚子好餓，"
@@ -171,7 +183,7 @@ label CH1_1: #荒野求生
             jump CH1_2
         "視野良好的山峰":
             jump CH1_BE1
-label CH1_BE1:    #誤判
+label CH1_BE1:  #誤判
     $ persistent.unlocked_ch1_BE1 = True
     scene game_ch1
     nvl_narrator "我決定先往視野良好的山峰走去，"
@@ -185,7 +197,7 @@ label CH1_BE1:    #誤判
     nvl_narrator "覺得身體越來越冷…"
     nvl_narrator "<END-誤判>"
     return
-label CH1_2: #登山隊
+label CH1_2:    #登山隊
     $ persistent.unlocked_ch1_2 = True
     scene game_ch1
     nvl_narrator "我離木屋還有一段距離，"
@@ -201,7 +213,7 @@ label CH1_2: #登山隊
     nvl_narrator "我走到了有_______的門前"
     menu: 
         "風曬過的肉味":
-            $ Owner =1;
+            $ persistent.Owner =1; #1:隊長 2:隊醫 3:沃寧/拉札 4:奧金 5:布爾金
             nvl_narrator "(我走到了有風曬過的肉味的門前)"
             nvl_narrator "過了一陣子，門開了。 "
             nvl_narrator "他看了我一眼，沒有說話。 "
@@ -218,7 +230,7 @@ label CH1_2: #登山隊
             nvl_narrator "透出一股不容妥協的責任感。 "
             nvl_narrator "最後我在房間裡找了一個地方休息。"
         "清香的草藥味":
-            $ Owner =2;
+            $ persistent.Owner =2; #1:隊長 2:隊醫 3:沃寧/拉札 4:奧金 5:布爾金
             nvl_narrator "(我走到了有清香的草藥味的門前)"
             nvl_narrator "過了一陣子，門開了。"
             nvl_narrator "他看了我一眼，沒有說話。"
@@ -233,7 +245,7 @@ label CH1_2: #登山隊
             nvl_narrator "紙上畫著人體的圖，還有密密麻麻的標記。 "
             nvl_narrator "最後我在房間裡找了一個地方休息。"
         "淡淡的麥香味":
-            $ Owner =3;
+            $ persistent.Owner =5; #1:隊長 2:隊醫 3:沃寧/拉札 4:奧金 5:布爾金
             nvl_narrator "(我走到了有淡淡的麥香味的門前)"
             nvl_narrator "過了一陣子，門開了。 "
             nvl_narrator "他看了我一眼，沒有說話。 "
@@ -247,7 +259,7 @@ label CH1_2: #登山隊
             nvl_narrator "坐在那裡手腳仍不自覺地快速活動著。 "
             nvl_narrator "最後我在房間裡找了一個地方休息。"
         "濃濃的奶香味":
-            $ Owner =4;
+            $ persistent.Owner =4; #1:隊長 2:隊醫 3:沃寧/拉札 4:奧金 5:布爾金
             nvl_narrator "(我走到了有濃濃的奶香味的門前)"
             nvl_narrator "過了一陣子，門開了。 "
             nvl_narrator "他看了我一眼，沒有說話。 "
@@ -263,7 +275,7 @@ label CH1_2: #登山隊
             nvl_narrator "展現出極為敏銳的觀察力。 "
             nvl_narrator "最後我在房間裡找了一個地方休息。"
         "濃烈的煙燻味":
-            $ Owner =3;
+            $ persistent.Owner =3; #1:隊長 2:隊醫 3:沃寧/拉札 4:奧金 5:布爾金
             nvl_narrator "(我走到了有濃烈的煙燻味的門前)"
             nvl_narrator "過了一陣子，門開了。 "
             nvl_narrator "他看了我一眼，沒有說話。 "
@@ -278,7 +290,7 @@ label CH1_2: #登山隊
             nvl_narrator "彷彿隨時準備應對最極端的生存考驗。 "
             nvl_narrator "最後我在房間裡找了一個地方休息。"
         "溫熱的茶香味":
-            $ Owner =3;
+            $ persistent.Owner =3; #1:隊長 2:隊醫 3:沃寧/拉札 4:奧金 5:布爾金
             nvl_narrator "(我走到了有溫熱的茶香味的門前)"
             nvl_narrator "過了一陣子，門開了。 "
             nvl_narrator "他看了我一眼，沒有說話。 "
@@ -292,7 +304,7 @@ label CH1_2: #登山隊
             nvl_narrator "他桌角還著幾卷備用的相機底片，"
             nvl_narrator "似乎他也曾負責過拍照的工作。 "
             nvl_narrator "最後我在房間裡找了一個地方休息。"    
-label CH1_3: #訓練
+label CH1_3:    #訓練
     $ persistent.unlocked_ch1_3 = True
     scene game_ch1
     nvl_narrator "……"
@@ -302,16 +314,16 @@ label CH1_3: #訓練
     nvl_narrator "也逐漸習慣了這個身體。"
    
     nvl_narrator "我發現他們似乎就是影片中的登山隊，"
-    nvl_narrator "這支菁英小隊由隊長列文帶領，成員包括隊醫法布、隊員布爾金、沃寧、拉扎，"
-    nvl_narrator "與攝影師奧金。"
-    if(Owner==1):
+    nvl_narrator "這支菁英小隊由隊長列文帶領，成員包括隊醫法布、隊員布爾金、沃寧、拉扎與奧金。"
+
+    if(persistent.Owner==1): #1:隊長 2:隊醫 3:沃寧/拉札 4:奧金 5:布爾金
         nvl_narrator "而我的主人正是登山隊的隊長。"
-    elif(Owner==2):
+    elif(persistent.Owner==2):
         nvl_narrator "而我的主人正是登山隊的隊醫。"
-    elif(Owner==3):
+    elif(persistent.Owner==4):
+        nvl_narrator "而我的主人正是登山隊的隊員，同時負責攝影的工作。"
+    else:
         nvl_narrator "而我的主人正是登山隊的隊員。"
-    elif(Owner==4):
-        nvl_narrator "而我的主人正是登山隊的攝影師。"
     nvl_narrator "平常，我會跟他們一起去做登山的基本訓練，"
     nvl_narrator "休息時，他們也會陪我一起玩。"
 
@@ -320,7 +332,7 @@ label CH1_3: #訓練
     #TODO 遊戲未完成
     menu:
         "通過":
-            $ pass_game = 1
+            $ persistent.pass_game = 1
             nvl_narrator "我們玩了響片遊戲一個月之後，"
             nvl_narrator "他在房間裝了幾個按鈕，"
             nvl_narrator "讓我可以表達需求，"
@@ -328,7 +340,7 @@ label CH1_3: #訓練
             nvl_narrator "他偶爾還會用雙手跟我溝通，"
             nvl_narrator "像是要不要出去玩。"
         "未通過":
-            $ pass_game = 0
+            $ persistent.pass_game = 0
             nvl_narrator "雖然我玩的不怎麼樣，"
             nvl_narrator "但他還是很有耐心。"
             nvl_narrator "我們溝通還是主要透過他的解讀，"
@@ -336,7 +348,7 @@ label CH1_3: #訓練
             nvl_narrator "像是要不要出去玩。"
     nvl_narrator "他時常還會把我當作訓練的一環:"
 
-    if(Owner==1):
+    if(persistent.Owner==1): #1:隊長 2:隊醫 3:沃寧/拉札 4:奧金 5:布爾金
         nvl_narrator "他會把我放在地圖上，"
         nvl_narrator "假裝我是暴風雪。"
         nvl_narrator "然後開始規劃如何避開暴風雪的路線，"
@@ -345,7 +357,7 @@ label CH1_3: #訓練
         nvl_narrator "他必須確保整個團隊的安全。"
         nvl_narrator "隨著實地訓練的日子越來越近，"
         nvl_narrator "這樣的練習也變得越來越頻繁。 "
-    elif(Owner==2):
+    elif(persistent.Owner==2):
         nvl_narrator "他需要協助隊長規劃訓練計畫，"
         nvl_narrator "也負責規劃每天的菜單。"
         nvl_narrator "他常常拿我當作他的試驗對象，"
@@ -356,16 +368,7 @@ label CH1_3: #訓練
         nvl_narrator "該如何更精準地用藥。"
         nvl_narrator "隨著實地訓練的日子越來越近，"
         nvl_narrator "他也越來越頻繁地翻閱高山相關的論文。"
-    elif(Owner==3):
-        nvl_narrator "他會在房間裡做一些體能訓練。"
-        nvl_narrator "有時會綁上負重袋，"
-        nvl_narrator "再把我放到他的背上一起訓練。"
-        nvl_narrator "他是登山隊中最強狀的人，"
-        nvl_narrator "所以他的登山包也是最重的，"
-        nvl_narrator "負責背負團隊需要的各種裝備。"
-        nvl_narrator "隨著實地訓練的日子越來越近，"
-        nvl_narrator "這樣的練習也變得越來越頻繁。 "
-    elif(Owner==4):
+    elif(persistent.Owner==4):
         nvl_narrator "他會在房間整理他的相機。"
         nvl_narrator "有時候，他會把燈關掉，"
         nvl_narrator "只留一點點光，"
@@ -375,11 +378,20 @@ label CH1_3: #訓練
         nvl_narrator "再拿起相機拍攝。"
         nvl_narrator "隨著實地訓練的日子越來越近，"
         nvl_narrator "他這樣的測試也變得越來越頻繁。"
+    else:
+        nvl_narrator "他會在房間裡做一些體能訓練。"
+        nvl_narrator "有時會綁上負重袋，"
+        nvl_narrator "再把我放到他的背上一起訓練。"
+        nvl_narrator "他是登山隊中最強狀的人，"
+        nvl_narrator "所以他的登山包也是最重的，"
+        nvl_narrator "負責背負團隊需要的各種裝備。"
+        nvl_narrator "隨著實地訓練的日子越來越近，"
+        nvl_narrator "這樣的練習也變得越來越頻繁。 "
     
     nvl_narrator "日子到了要實地訓練的那一天，"
     nvl_narrator "我才驚覺這一天就是影片所說的那一天。"
 
-    if(pass_game):
+    if(persistent.pass_game):
         nvl_narrator "我急忙的用按鈕按「不要」，"
         nvl_narrator "他蹲下來問我什麼不要。"
         nvl_narrator "我圍著他轉，"
@@ -406,8 +418,7 @@ label CH1_3: #訓練
     window hide
 
     jump CH2_1
-
-label CH2_1: #登山
+label CH2_1:    #登山
     nvl clear
     $ persistent.unlocked_ch2_1 = True
     scene game_ch2
@@ -419,7 +430,7 @@ label CH2_1: #登山
     nvl_narrator "……"
     nvl_narrator "也許我能做什麼，"
     nvl_narrator "但木屋的大門被鎖上了，我無法離開這裡。"
-label CH2_2: #木屋
+label CH2_2:    #木屋
     $ persistent.unlocked_ch2_2 = True
     scene game_ch2
     nvl_narrator "(房間探索)"
@@ -431,7 +442,7 @@ label CH2_2: #木屋
         jump CH2_3
     else:
         jump CH2_BE1
-label CH2_3: #狂奔
+label CH2_3:    #狂奔
     $ persistent.unlocked_ch2_3 = True
     scene game_ch2
     nvl_narrator "我打開了房門，"
@@ -445,9 +456,9 @@ label CH2_3: #狂奔
     nvl_narrator "原本還能看見山腳下的木屋微弱的燈光，"
     nvl_narrator "此刻卻被一陣突如其來的濃霧徹底覆蓋。"
     nvl_narrator "能見度瞬間趨近於零，狂風在耳邊呼嘯。"
-    if(pet=="dog"):
+    if(persistent.pet=="dog"):
         nvl_narrator "「汪——！」我大聲呼喚著。"
-    elif(pet=="cat"):
+    elif(persistent.pet=="cat"):
         nvl_narrator "「喵——！」我大聲呼喚著。"
     nvl_narrator "就在不遠處的雪坡上，我看到了幾個模糊的身影。"
     nvl_narrator "是他們！他們正在焦急地就地挖掘雪洞。"
@@ -467,12 +478,12 @@ label CH2_3: #狂奔
     nvl_narrator "濕度接近 100\%。"
     nvl_narrator "隊員們的羽絨服幾乎全濕透了，"
     nvl_narrator "而在這種環境下，衣服根本無法乾透。"
-label CH2_4: #雪洞
+label CH2_4:    #雪洞
     $ persistent.unlocked_ch2_4 = True
     scene game_ch2
     # TODO 雪洞探索
     nvl_narrator "(雪洞探索)"
-label CH2_5: #救援
+label CH2_5:    #救援
     $ persistent.unlocked_ch2_5 = True
     scene game_ch2
     nvl_narrator "就在這時，洞外突然傳來微弱的動靜。"
@@ -482,20 +493,20 @@ label CH2_5: #救援
     nvl_narrator "我決定_____:"
     menu:
         "保持安靜":
-            $ help_2 = 1
+            $ persistent.help_2 = 1
             nvl_narrator "隊長列文沒有猶豫，將他們讓進了雪洞。"
             nvl_narrator "原本 6 個人的狹小空間，現在擠進了 8 個人（還有一隻我）。"
             nvl_narrator "空氣逐漸變得稀薄，"
             nvl_narrator "我也在不知不覺中睡去。 "
     
         "凶狠地堵在洞口":
-            $ help_2 = 0
+            $ persistent.help_2 = 0
             nvl_narrator "我突然從主人的懷裡掙脫，"
             nvl_narrator "衝到雪洞最外側的入口，"
             nvl_narrator "對著那兩名日本客發出凶狠的低吼與咆哮。"
-            if(pet=="dog"):
+            if(persistent.pet=="dog"):
                 nvl_narrator "「汪汪汪！」我露出尖牙，"
-            elif(pet=="cat"):
+            elif(persistent.pet=="cat"):
                 nvl_narrator "「嘶——！」我露出尖牙，"
             nvl_narrator "只要他們一靠近，我就作勢要咬上去。 "
             nvl_narrator "主人錯愕地想把我拉回來："
@@ -510,7 +521,7 @@ label CH2_5: #救援
     nvl clear
     window hide
     jump CH3_1
-label CH2_BE1: #奧金
+label CH2_BE1:  #奧金
     $ persistent.unlocked_ch2_BE1 = True
     scene game_ch2
     nvl_narrator "沒辦法，"
@@ -525,90 +536,457 @@ label CH2_BE1: #奧金
     return
     # TODO 可補後續
 label CH2_BE2:
+    #TODO CH2_BE2
     $ persistent.unlocked_ch2_BE2 = True
     scene game_ch2
 
     return
-label CH3_1:
+label CH3_1:    #下山
     $ persistent.unlocked_ch3_1 = True
     scene game_ch3
-    return
-label CH3_2:
+    nvl_narrator "一夜的嚴寒與潮濕折磨著所有人，"
+    nvl_narrator "到了隔天清晨，"
+    nvl_narrator "列文接通了無線電請求支援後，"
+    nvl_narrator "下令全體離開雪洞，開始下山。"
+    nvl_narrator "我跟在主人的腳邊，雪地依然被濃霧籠罩。"
+
+    nvl_narrator "沒走幾步，"
+    nvl_narrator "隊醫法布突然重重地摔倒在雪地裡。"
+    nvl_narrator "大家趕緊將他扶起，"
+    nvl_narrator "但他走了幾步又再次摔倒。"
+    nvl_narrator "法布說：「霧太濃了，我什麼都看不見！」"
+    nvl_narrator "負責攙扶他的奧金看著法布，意識到："
+    nvl_narrator "「法布的眼睛看不見了！」"
+    nvl_narrator "我抬頭看著隊醫法布，他痛苦地捂著眼睛，"
+    nvl_narrator "嚴重的「雪盲」讓他徹底失去了視覺。"
+
+    nvl_narrator "隊長列文陷入了猶豫，"
+    nvl_narrator "如果堅持下山，法布將可能喪命。"
+    nvl_narrator "而在這片濃霧中，繼法布之後又有誰會倒下?"
+    nvl_narrator "……"
+    nvl_narrator "最終他下令："
+    nvl_narrator "「全員返回雪洞！」"
+
+    if(persistent.Owner==1): #1:隊長 2:隊醫 3:沃寧/拉札 4:奧金 5:布爾金
+        nvl_narrator "我知道身為隊長，他希望把所有人安全帶下山。"
+        nvl_narrator "他深怕法布因此喪命，所以下令撤退。 "
+        nvl_narrator "但我知道這將是個致命的決定，所以我______________"
+        menu:
+            "咬住他的對講機":
+                nvl_narrator "我咬住他的對講機，試圖阻止他下達退回的指令。"
+                nvl_narrator "他苦笑著看著我，"
+                nvl_narrator "但為了維持隊長的威嚴與決斷，"
+                nvl_narrator "他輕輕將我踢開，"
+                nvl_narrator "並強行推動隊伍往回走。 "
+            "擋在隊伍前面":
+                nvl_narrator "我擋在隊伍前面，對著下山的方向狂吠"
+                nvl_narrator "我不斷狂吠，"
+                nvl_narrator "試圖告訴他山下木屋就在不遠處。"
+                nvl_narrator "列文為了安撫我，"
+                nvl_narrator "將我抱起，走回雪洞中。"
+        jump CH3_2
+    elif(persistent.Owner==2):
+        nvl_narrator "看著法布痛苦地跪在雪地裡， "
+        nvl_narrator "什麼都看不見。 "
+        nvl_narrator "我______"
+        menu:
+            "緊緊貼著他的腿，充當他的導盲犬 ":
+                nvl_narrator "我用身體蹭著他冰冷的腿，"
+                nvl_narrator "引導他跟上隊伍的腳步，"
+                nvl_narrator "慢慢往雪洞的方向退回。 "
+                jump CH3_2
+            "咬住他的褲管，拚命想把他往山下拖":
+                jump CH3_BE2
+    elif(persistent.Owner==4):
+        nvl_narrator "此時奧金為了攙扶體格高大的法布，"
+        nvl_narrator "已經筋疲力盡。"
+        nvl_narrator "所以我______"
+        menu:
+            "鑽進法布的手臂下，幫主人一起頂著重量":
+                nvl_narrator "我用小小的身軀幫忙分擔了一點重量，"
+                nvl_narrator "奧金感激地看了我一眼，"
+                nvl_narrator "我們艱難地往雪洞走去。 "
+                jump CH3_2
+            "離開主人，獨自衝下山去找救兵":
+                jump CH3_BE3 #尋蹤"
+    else:
+        nvl_narrator "主人看著隊長列文下令退回那個狹小、潮濕的雪洞，"
+        nvl_narrator "眼中閃過了一絲不甘與憤怒。"
+        nvl_narrator "雖然下山是活下去的機會，"
+        nvl_narrator "但他們也不想丟下隊友。"
+        nvl_narrator "所以我_________"
+        menu:
+            "順從地走到他腳邊，示意一起回去":
+                nvl_narrator "他摸了摸我的頭，"
+                nvl_narrator "跟隨隊長往回走。"
+                jump CH3_2
+            "擋在主人面前，對著隊長列文低吼抗議":
+                jump CH3_BE4 #叛變
+            "咬住他的褲管，拚命想把他往山下拖" if persistent.Owner == 3:
+                jump CH3_BE1 #脫隊
+
+label CH3_2:    #撤退
     $ persistent.unlocked_ch3_2 = True
     scene game_ch3
-    return
-label CH3_3:
+    nvl_narrator "我們跌跌撞撞地退回雪洞。"
+    nvl_narrator "這時，意外發生了。"
+    if (persistent.help_2):#救日本人
+        nvl_narrator "因為 8 個人的擠壓與衝撞，"
+    else:#沒救日本人
+        nvl_narrator "因為 6 個人的擠壓與衝撞，"
+    nvl_narrator "雪洞的前廳突然坍塌了！"
+    nvl_narrator "擋風的裝備全被掩埋，"
+    nvl_narrator "所有人只能被迫擠在僅有約四平方公尺的後廳裡，"
+    nvl_narrator "精疲力盡地圍著卡式爐等待救援。"
+    if (persistent.help_2):#救日本人
+        jump CH3_3
+    else: #沒救日本人
+        nvl_narrator "因為 6 個人的擠壓與衝撞，"
+        jump CH3_BE5
+label CH3_3:    #爭執
     $ persistent.unlocked_ch3_3 = True
     scene game_ch3
-    return
-label CH3_4:
+
+    nvl_narrator "夜幕再次降臨。"
+    nvl_narrator "洞內的氧氣越來越稀薄，我感覺呼吸變得非常困難。"
+    nvl_narrator "這時，隊長列文帶著沃寧和拉扎奮力挖開了被雪堵住的洞口。"
+    nvl_narrator "一瞬間，冰冷的空氣灌了進來。"
+    nvl_narrator "我探出頭去——天空放晴了！"
+    nvl_narrator "山腳下木屋的燈光清晰可見，那是生存的希望。"
+    nvl_narrator "但回頭看洞內，"
+    nvl_narrator "隊醫法布已經奄奄一息，"
+    nvl_narrator "隊員布爾金也處於一種奇怪的神經興奮狀態，"
+    nvl_narrator "兩名日本人呼吸急促，隊員奧金也站不起來。"
+    nvl_narrator "沃寧和拉扎激動地準備拿裝備下山，但列文再次猶豫了。"
+    nvl_narrator "身為隊長，他不願意拋棄任何一名隊友，"
+    nvl_narrator "「不准走！所有人退回雪洞！」列文大吼著下令。"
+    nvl_narrator "似乎是連日的疲勞讓列文失去判斷力，"
+    nvl_narrator "接通無線電之後，"
+    nvl_narrator "他匯報：「情況尚在控制中，計畫明天下山」"
+    nvl_narrator "身為國家重資打造的菁英小隊，"
+    nvl_narrator "他不願灰頭土臉地向人求救。"
+    nvl_narrator "沃寧和拉扎愣住了，隨後眼神轉為憤怒。"
+    nvl_narrator "他們深知這是千載難逢的下山機會，"
+    nvl_narrator "退回去只有死路一條。"
+    nvl_narrator "沃寧衝上前，想要搶奪列文手中的無線電，"
+    nvl_narrator "直接向山下呼救。"
+    nvl_narrator "衝突瞬間爆發！"
+    nvl_narrator "看著失控的隊員們，我該怎麼做？"
+    menu:
+        "咬住隊長列文的褲管":
+            nvl_narrator "我想把列文往山下的方向拖，"
+            nvl_narrator "告訴他必須帶大家下山！"
+            nvl_narrator "但他此刻已經陷入了極度的固執與瘋狂，"
+            nvl_narrator "他一把將我甩開，"
+            nvl_narrator "死死護著無線電，"
+            nvl_narrator "不讓沃寧呼救。"
+        "擋在沃寧和拉扎面前大叫":
+            nvl_narrator "我試圖阻止他們攻擊隊長，"
+            nvl_narrator "但在生死存亡的恐懼面前，"
+            nvl_narrator "我的叫聲顯得如此微弱。"
+            nvl_narrator "他們完全無視了我，"
+            nvl_narrator "紅著眼眶撲向列文。"
+        "衝去保護無線電":
+            nvl_narrator "我想護住那個能救命的黑盒子，"
+            nvl_narrator "但他們在狹小的洞口扭打在一起。"
+            nvl_narrator "混亂之中，"
+            nvl_narrator "我看準時機咬住了無線電，"
+            nvl_narrator "帶著它逃離爭執的隊員們。"
+            nvl_narrator "我嘗試接通無線電，"
+            nvl_narrator "但對講機的頻道已經跑掉，"
+            nvl_narrator "我需要調整到正確的頻道:"
+            $ user_input = renpy.input("請輸入正確的頻道：")
+            $ is_correct = my_lib.check_password(user_input.encode('utf-8'))
+            if is_correct == 1:
+                jump CH3_GE2
+            nvl_narrator "列文發現無線電被搶走而追了上來，"
+            nvl_narrator "隊員們也緊追其後。"
+            nvl_narrator "一陣混亂中，"
+            nvl_narrator "我來不及接通無線電，"
+            nvl_narrator "一隻沉重的登山靴踩了下來。"
+        "留在雪洞裡" if persistent.unlocked_ch3_BE2:    
+            jump CH3_GE1 #報恩
+    jump CH3_4
+label CH3_4:    #歷史重演
     $ persistent.unlocked_ch3_4 = True
     scene game_ch3
+    
+    nvl_narrator "無論我怎麼做，都無法阻止這場悲劇。"
+    nvl_narrator "在激烈的肢體衝突中，"
+    nvl_narrator "我聽到了骨頭碰撞的聲音，"
+    nvl_narrator "看到他們因為極度絕望而互相撕咬。"
+    nvl_narrator "「啪！」"
+    nvl_narrator "那台用來通信的無線電被重重地砸碎在雪地上，"
+    nvl_narrator "零件散落一地。"
+    nvl_narrator "生存的最後一絲希望，斷絕了。"
+
+    nvl_narrator "打鬥耗盡了他們最後一絲力氣，"
+    nvl_narrator "三人倒在雪地裡，"
+    nvl_narrator "開始陷入失溫症狀，"
+    nvl_narrator "失溫症讓下視丘發出了錯誤的炎熱信號，"
+    nvl_narrator "他們開始在寒冷的雪地中脫去外衣。"
+
+    nvl_narrator "列文褲子褪到膝蓋以下，"
+    nvl_narrator "倒在雪地裡仰望著星空，"
+    nvl_narrator "身體溫暖的訊號讓他露出一絲微笑。"
+    nvl_narrator "他在生命的最後一刻，"
+    nvl_narrator "似乎想通了什麼， "
+    nvl_narrator "一手指著天空，"
+    nvl_narrator "慢慢被凍僵。"
+
+    nvl_narrator "拉扎則陷入呼吸困難，"
+    nvl_narrator "佝僂著身子趴在地上喘息，"
+    nvl_narrator "最終，他的呼吸越來越微弱，"
+    nvl_narrator "面部開始結冰。"
+
+    nvl_narrator "沃寧則陷入精神異常，"
+    nvl_narrator "半跪在雪地裡，"
+    nvl_narrator "拿著日本客留下的雪板瘋狂地挖掘著，"
+    nvl_narrator "似乎在尋找著什麼，"
+    nvl_narrator "隨後他也失去了生機。"
+
+    nvl_narrator "而其中一名日本客趁亂逃出了洞外，"
+    nvl_narrator "防水的外衣讓他免於失溫症之苦，"
+    nvl_narrator "他向山下走去，消失在黑夜中。"
+
+    nvl_narrator "隔日早晨，"
+    nvl_narrator "灌入雪洞的寒風將我叫醒，"
+    nvl_narrator "不久，奧金甦醒了過來。"
+    nvl_narrator "奧金驚恐地看著周圍，"
+    nvl_narrator "隊友布爾金已經死亡，"
+    nvl_narrator "身下是一大灘嘔吐物。"
+    nvl_narrator "旁邊的隊醫法布一息尚存，"
+    nvl_narrator "他顫抖著用手指沾著地上的血跡，"
+    nvl_narrator "在雪洞的牆上畫下了一個詭異的渦流狀同心圓。"
+
+    nvl_narrator "奧金虛弱地爬出洞口，"
+    nvl_narrator "貪婪地呼吸著氧氣，"
+    nvl_narrator "搖搖晃晃地向山下走去。"
+
+    if(persistent.Owner==4): #1:隊長 2:隊醫 3:沃寧/拉札 4:奧金 5:布爾金
+        nvl_narrator "我跟著主人下山，"
+        nvl_narrator "回到熟悉的木屋。"
+        nvl_narrator "他帶著救援隊回到雪洞，"
+        nvl_narrator "此時，除了奄奄一息的法布和剩下的一名日本客，"
+        nvl_narrator "其他登山隊員已全數遇難。"
+    elif(persistent.Owner==2): #1:隊長 2:隊醫 3:沃寧/拉札 4:奧金 5:布爾金
+        nvl_narrator "我待在已經奄奄一息的法布身旁。"
+        nvl_narrator "不久之後，"
+        nvl_narrator "奧金帶著救援隊趕到。"
+        nvl_narrator "此時，除了法布和剩下的一名日本客，"
+        nvl_narrator "其他登山隊員已全數遇難。"
+    else:
+        nvl_narrator "我站在原處，看著主人永遠安靜地躺在雪地裡。"
+        nvl_narrator "隨後，"
+        nvl_narrator "奧金帶著救援隊趕到。"
+        nvl_narrator "此時，除了奄奄一息的法布和剩下的一名日本客，"
+        nvl_narrator "其他登山隊員已全數遇難。"
+    nvl_narrator "法布用手指沾著血，"
+    nvl_narrator "在牆上畫了一個渦流狀的同心圓。"
+    nvl_narrator "在下山途中因低溫，"
+    nvl_narrator "法布漸漸失去了意識。"
+    nvl_narrator "另一名日本客雖然獲救下山，"
+    nvl_narrator "卻從此行為能力退化，"
+    nvl_narrator "甚至不記得也無法描述這段經歷。"
+    nvl_narrator "……"
+    nvl_narrator "我隨然回到了過去，"
+    nvl_narrator "卻無法改變已發生的歷史。"
+    nvl_narrator "隨後，我的身體變得越來越輕，"
+    nvl_narrator "逐漸變得透明。"
+    nvl_narrator "……"
+    nvl_narrator "(END)"
+    $ persistent.unlocked_ch3_5 = True
     return
 label CH3_5:
     $ persistent.unlocked_ch3_5 = True
     scene game_ch3
+    # TODO CH3_5
     return
-
-label CH3_BE1:
+label CH3_BE1:  #脫隊
     $ persistent.unlocked_ch3_BE1 = True
     scene game_ch3
-
+    nvl_narrator "我咬住主人的褲管，"
+    nvl_narrator "拚命想把他往山下拖。"
+    nvl_narrator "這給了沃寧和拉扎拒絕隊長命令的勇氣，"
+    nvl_narrator "但他們沒有選擇直接與隊長發生衝突，"
+    nvl_narrator "而是趁著濃霧脫隊。"
+    nvl_narrator "最後，他們順利下山聯絡救援隊。"
+    nvl_narrator "救援隊連夜帶著裝備上山，"
+    nvl_narrator "卻在前往雪洞的路上發現其他隊員的屍體。"
+    nvl_narrator "原來，隊長在他們脫隊不久後，"
+    nvl_narrator "發現少了兩名隊員，"
+    nvl_narrator "又下令回頭尋找。"
+    nvl_narrator "最終，隊員們不敵濃霧與暴風雪，"
+    nvl_narrator "紛紛倒在雪地之中。"
+    if persistent.help_2:#救了日本人
+        nvl_narrator "雪洞之中只剩下兩名日本登山客。"
+    nvl_narrator "沃寧和拉扎陷入了深深的自責。"
+    nvl_narrator "……"
+    nvl_narrator "(END)"
     return
-label CH3_BE2:
+label CH3_BE2:  #冰縫
     $ persistent.unlocked_ch3_BE2 = True
     scene game_ch3
-
+    nvl_narrator "我知道退回雪洞只有死路一條。"
+    nvl_narrator "我死死咬住法布的褲管，"
+    nvl_narrator "想把他拖下山。"
+    nvl_narrator "但他完全失去視覺，"
+    nvl_narrator "被我拖拽著偏離了隊伍路線，"
+    nvl_narrator "一腳踩空跌入了冰縫中。"
+    nvl_narrator "臨死前，他用殘存的力氣將我緊緊護在懷裡。"
+    nvl_narrator "……"
+    nvl_narrator "(END)"
     return
-label CH3_BE3:
+label CH3_BE3:  #尋蹤
     $ persistent.unlocked_ch3_BE3 = True
     scene game_ch3
-
+    nvl_narrator "我知道主人已經撐不住了，"
+    nvl_narrator "我轉身衝入暴風雪，"
+    nvl_narrator "想回到木屋找人幫忙。"
+    nvl_narrator "但我嬌小的身軀很快就被嚴寒吞噬。"
+    nvl_narrator "最終，我倒在雪地裡，"
+    nvl_narrator "再也無法起來……"
+    nvl_narrator "隔天清晨，奧金獨自下山獲救，"
+    nvl_narrator "而他一生都在尋找那隻為了救他而消失在雪地裡的寵物。 "
+    nvl_narrator "(END)"
     return
-label CH3_BE4:
+label CH3_BE4:  #叛變
     $ persistent.unlocked_ch3_BE4 = True
     scene game_ch3
+    nvl_narrator "我的低吼點燃了主人心中壓抑的怒火。"
+    nvl_narrator "沃寧與拉扎再也無法忍受這種形同等死的決策，"
+    nvl_narrator "直接在雪地裡與隊長爆發了激烈的肢體衝突。"
+    nvl_narrator "在極寒與混亂中，裝備散落一地。"
+    nvl_narrator "隊員們耗盡了體力，"
+    nvl_narrator "倒在雪地中，"
 
+    if persistent.help_2:
+        nvl_narrator "兩名日本登山客則趁亂逃離，"
+        nvl_narrator "往山下走去，"
+        nvl_narrator "卻不慎掉入冰縫中。"
+
+    nvl_narrator "沒有人活著回到木屋。 "
+    nvl_narrator "(END)"
     return
-label CH3_BE5:
+label CH3_BE5:  #毒氣室
     $ persistent.unlocked_ch3_BE5 = True
     scene game_ch3
+    nvl_narrator "所幸，洞內的空氣還算足夠，"
+    nvl_narrator "隊員們靜靜地閉目養神，"
+    nvl_narrator "我則逐漸進入昏睡中。"
 
+    nvl_narrator "到了隔天清晨， "
+    nvl_narrator "除了已經無力行走的法布，"
+    nvl_narrator "布爾金也開始發生嚴重的神經抽搐與劇烈嘔吐，"
+    nvl_narrator "甚至吐出了鮮血。 "
+    nvl_narrator "空氣中瀰漫著詭異的氣味，"
+    nvl_narrator "但所有人都以為只是高山症發作。"
+    nvl_narrator "接著，奧金也癱倒在地，"
+    nvl_narrator "陷入呼吸困難與麻痺。"
+    nvl_narrator "此時，奄奄一息的法布沾了地上的血跡，"
+    nvl_narrator "在地上畫出渦流狀的同心圓，"
+    nvl_narrator "喃喃自語地說著：「固體酒精…立德粉…氫氰酸…」"
+
+    nvl_narrator "聽到法布的警告，"
+    nvl_narrator "隊長列文似乎意識到了什麼，"
+    nvl_narrator "想帶著沃寧與拉扎挖開雪洞，"
+    nvl_narrator "然而因整晚無法乾透的羽絨服，"
+    nvl_narrator "此時沃寧與拉扎已陷入了嚴重的失溫症狀。"
+    nvl_narrator "失溫症讓下視丘發出了錯誤的炎熱信號，"
+    nvl_narrator "使他們開始瘋狂地撕扯自己濕透的羽絨服。"
+    nvl_narrator "列文嘗試自己挖開雪洞，"
+    nvl_narrator "卻也在成功之前因吸入過多燃燒固體酒精產生的毒氣而開始陷入呼吸困難。"
+    nvl_narrator "最終，他們相繼倒在雪洞之中。"
+    nvl_narrator "而我，也在這充滿毒氣的密閉雪洞裡，"
+    nvl_narrator "漸漸失去了意識……"
+    nvl_narrator "(END)"
     return
-label CH3_GE1:
+label CH3_GE1:  #報恩
     $ persistent.unlocked_ch3_GE1 = True
     scene game_ch3
+    nvl_narrator "列文、沃寧和拉扎三人在洞口外打了起來，"
+    nvl_narrator "為了避免被他們意外踩傷，"
+    nvl_narrator "我選擇躲在洞裡。"
+    nvl_narrator "隨著被挖開的洞口灌入冷風，"
+    nvl_narrator "其中一位日本客呼吸逐漸恢復正常。"
+    nvl_narrator "隨著三人的爭執越演越烈，"
+    nvl_narrator "他嘗試逃離雪洞，"
+    nvl_narrator "我也悄悄地跟了上去。"
 
+    nvl_narrator "他開始往山下的木屋走去，"
+    nvl_narrator "我則跑到前面探路。"
+
+    nvl_narrator "不久之後，我發現前方有一個冰縫，"
+    nvl_narrator "我站在原地大叫提醒他。"
+
+    nvl_narrator "最終，"
+    nvl_narrator "我們成功抵達木屋，"
+    nvl_narrator "並呼叫救援隊。"
+
+    nvl_narrator "隔天早上，"
+    nvl_narrator "救援隊帶著隊員們回來，"
+    nvl_narrator "除了布爾金已經因救援不及而身亡，"
+    nvl_narrator "其他人都倖免於難。"
+
+    nvl_narrator "法布的眼部需要經歷漫長的治療，"
+    nvl_narrator "並且很難恢復原來的視力。"
+    nvl_narrator "其他隊員則在短暫修整之後，"
+    nvl_narrator "繼續進行訓練，"
+    nvl_narrator "最後他們成為了這個山峰的專業救援隊。"
+
+    nvl_narrator "而我始終找不到回到原來世界的方法，"
+    nvl_narrator "只能和這些隊員們共度餘生。"
+    nvl_narrator "(END)"
     return
-label CH3_GE2:
+label CH3_GE2:  #求救
     $ persistent.unlocked_ch3_GE2 = True
     scene game_ch3
+    nvl_narrator "列文發現無線電被搶走而追了上來，"
+    nvl_narrator "隊員們也緊追其後。"
+    nvl_narrator "而我成功接通了無線電，"
+    nvl_narrator "沃寧看到我成功接通，"
+    nvl_narrator "大吼著：「求救，我們需要幫助!」"
+    nvl_narrator "「滋...收到，請報告你們的精確位置與情況。」"
+    nvl_narrator "對講機那一頭，"
+    nvl_narrator "傳來了指導員清晰而穩定的回音。"
+    nvl_narrator "聽到這個宛如奇蹟般的聲音，"
+    nvl_narrator "三人的怒火與瘋狂瞬間停滯了。 "
+    nvl_narrator "列文舉在半空中的拳頭無力地垂下，眼眶泛紅；"
+    nvl_narrator "拉扎緊繃的身體也癱軟下來，跪在雪地裡大口喘息。"
+    nvl_narrator "沃寧立刻從我嘴裡接過對講機，"
+    nvl_narrator "他的聲音因為極度的寒冷與激動而劇烈發抖："
+    nvl_narrator "「我們在原定路線的雪洞裡！"
+    nvl_narrator "隊醫法布發生嚴重雪盲完全看不見，"
+    nvl_narrator "布爾金出現奇怪的神經抽搐與昏迷，"
+    nvl_narrator "洞裡還有兩名日本客！"
+    nvl_narrator "我們需要緊急醫療支援，"
+    nvl_narrator "重複，我們需要緊急醫療支援！」"
+    nvl_narrator "「收到。救援隊立刻帶著裝備出發，"
+    nvl_narrator "請你們務必保持清醒，固守待援！」"
+    nvl_narrator "通訊結束後，雪洞外依舊是狂風的呼嘯聲。 "
+    nvl_narrator "但這一次，那股令人窒息的絕望被徹底打破了。 "
+    nvl_narrator "知道救援已經在路上，三人不再為了生存權互相撕咬。 "
 
-    return
+    nvl_narrator "列文沉默地走上前，將快要凍僵的我緊緊抱進懷裡。 "
+    nvl_narrator "「對不起……還有，謝謝你。」他哽咽著把臉埋在我的毛髮裡。"
 
+    nvl_narrator "此時，固體酒精已經用盡，"
+    nvl_narrator "為了避免失溫，所有人緊緊抱團取暖，"
+    nvl_narrator "用彼此的體溫撐過這個漫長的黑夜。"
+    nvl_narrator "隔天破曉，救援隊趕到。 "
+    nvl_narrator "雖然布爾金和法布已經奄奄一息，"
+    nvl_narrator "但包含那兩名日本客在內，"
+    nvl_narrator "所有人都在失溫休克前被成功救下山。"
 
+    nvl_narrator "法布的眼部需要經歷漫長的治療，"
+    nvl_narrator "並且很難恢復原來的視力。"
+    nvl_narrator "布爾金則在即時的搶救下保住性命，"
+    nvl_narrator "隨著時間逐漸康復。"
+    nvl_narrator "其他隊員則在短暫修整之後，"
+    nvl_narrator "繼續進行訓練，"
+    nvl_narrator "最後他們成為了這個山峰的專業救援隊。"
 
-
-
-
-label test_c:
-    # TODO 以下劇本未完成
-    $ user_input = renpy.input("請輸入通關密碼：")
-    
-    # 將使用者輸入的字串轉成 bytes 傳給 C 語言
-    $ is_correct = my_lib.check_password(user_input.encode('utf-8'))
-
-    # 判斷 C 語言回傳的結果 (1 或 0)
-    if is_correct == 1:
-        "密碼正確！保險箱已開啟。"
-        jump puzzle_solved
-    else:
-        "密碼錯誤！警報器開始作響！"
-
-label puzzle_solved:
-    "你在裡面發現了關鍵的證據！"
-    return
-
-label Ch1_end:
-    "【第一章：- 完】"
+    nvl_narrator "而我始終找不到回到原來世界的方法，"
+    nvl_narrator "只能和這些隊員們共度餘生。"
+    nvl_narrator "(END)"
     return

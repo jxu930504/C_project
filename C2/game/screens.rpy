@@ -353,6 +353,7 @@ screen main_menu():
         hotspot (1108, 507, 144, 85) action ShowMenu("about")
         hotspot (1106, 610, 154, 90) action ShowMenu("help")
         hotspot (1104, 714, 160, 94) action Quit(confirm=False)
+        hotspot (1672, 990, 230, 65) action Confirm( "警告：這將會清除所有的解鎖進度與紀錄！\n確定要繼續嗎？", yes=Function(reset_all_progress), no=NullAction() )
 
 
 
@@ -685,8 +686,11 @@ screen preferences():
         hotspot (321, 494, 48, 49) action Preference("skip", "toggle")
         hotspot (321, 559, 47, 47) action Preference("after choices", "toggle")
         hotspot (322, 622, 46, 48) action Preference("transitions", "toggle")
-        hotspot (321, 835, 46, 46) action StylePreference("text_font", "Cubic") 
-        hotspot (322, 898, 44, 46) action StylePreference("text_font", "SourceHan")
+        #hotspot (321, 835, 46, 46) action StylePreference("text_font", "Cubic") 
+        #hotspot (322, 898, 44, 46) action StylePreference("text_font", "Iansui")
+        
+        hotspot (321, 835, 46, 46) action gui.SetPreference("font", "Cubic_11.ttf") # 字體
+        hotspot (322, 898, 44, 46) action gui.SetPreference("font", "Iansui-Regular.ttf")   # 字體
 
         hotspot (1751, 104, 71, 72) action If(main_menu, true=Hide("preferences"), false=Return())              # X
         hotspot (142, 401, 71, 73) action If(main_menu, true=Hide("preferences"), false=ShowMenu("main_menu"))  # Home
@@ -705,7 +709,7 @@ screen preferences():
         text "A":
             pos (1609, 264)    # 設定 X 和 Y 座標
             yanchor 0.5
-            size (28 * preferences.font_size)            # 建議加上字體大小設定，避免預設字體太大塞不進 78x81 的框內
+            size (42 * preferences.font_size)            # 建議加上字體大小設定，避免預設字體太大塞不進 78x81 的框內
             color "#000000"    # 文字顏色 (這表示白色，可依需求更改)
 
 init -5 python:
@@ -1165,9 +1169,7 @@ style nvl_window:
     ypos 113
     xsize 1461
     ysize 802
-    #(272, 114, 1466, 805)
-    #background "gui/game_menu.png"
-    #padding gui.nvl_borders.padding
+
 
 style nvl_entry:
     xfill False
@@ -1206,27 +1208,28 @@ style nvl_button:
     #properties gui.button_properties("nvl_button")
     
     # 對齊方式：和你的對話文字切齊 (假設你之前設為 20)
-    xpos 20
+    xpos gui.nvl_button_xpos
     xanchor 0.0
+
     
-    idle_background Solid("#ffffff") 
+    idle_background Solid("#d3d3d3") 
     hover_background Solid("#5e5e5e") 
     
     # 設定按鈕的內邊距 (上下左右留白)
-    #padding (20, 15, 20, 15)
+    padding (20, 15, 0, 15)
     
-    xsize 400
+    xsize gui.nvl_button_size
 
 
 style nvl_button_text:
     #properties gui.text_properties("nvl_button")
     
-    # 文字置中對齊
-    xalign 0.5 
+    xalign gui.nvl_button_xalign
     size gui.nvl_text_size
+    
     # 設定文字的顏色
-    idle_color "#3b3b3b" 
-    hover_color "#bdbdbd"
+    idle_color  "#4e4e4e"
+    hover_color "#ffffff"
 
 screen nvl_black(dialogue, items=None):
     # 1. 滿版純黑背景
