@@ -21,7 +21,7 @@ def scale_pixel_art(input_path, output_path):
 # ==========================================
 if __name__ == "__main__":
     # 替換成你實際的檔案路徑
-    input_file = "quick_menu_idle.png" 
-    output_file = "quick_menu_idle.png"
+    input_file = "cave_bg.png" 
+    output_file = "cave_bg.png"
     
     scale_pixel_art(input_file, output_file)

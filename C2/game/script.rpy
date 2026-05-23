@@ -10,7 +10,7 @@ image typing_cursor:
 
 init python:
     def type_sound(event, interact=True, **kwargs): #打字音
-        if event == "begin": #TODO 待修改
+        if event == "begin": #TODO 進度計算方式待修改
             # 確保總行數大於 0，避免發生除以零的數學錯誤
             if store.nvl_total_lines > 0:
                 # 自動計算這行對話佔全部的百分之幾
@@ -431,6 +431,7 @@ label CH2_1:    #登山
     nvl_narrator "也許我能做什麼，"
     nvl_narrator "但木屋的大門被鎖上了，我無法離開這裡。"
 label CH2_2:    #木屋
+    #TODO 探索
     $ persistent.unlocked_ch2_2 = True
     scene game_ch2
     nvl_narrator "(房間探索)"
@@ -481,8 +482,85 @@ label CH2_3:    #狂奔
 label CH2_4:    #雪洞
     $ persistent.unlocked_ch2_4 = True
     scene game_ch2
-    # TODO 雪洞探索
-    nvl_narrator "(雪洞探索)"
+    nvl_narrator "我決定悄悄在狹小的洞穴裡巡視，看看大家都在做些什麼。"
+    nvl clear
+    scene cave_bg
+    jump cave_loop
+label cave_loop:
+    if cave_investigation_count >= 6:
+        jump CH2_4_end
+    call screen cave_exploration_screen
+    jump cave_loop
+label click_backpack:
+    if not checked_backpack:
+        $ checked_backpack = True
+        $ cave_investigation_count += 1
+    "我瞄了一眼列文身邊的背包，發現它竟然異常沉重。"
+    "我悄悄蹭了一下，背包發出了金屬撞擊聲。"
+    "從小小的開口中，我看到裡面放了大量的冰鎬，可能有數十隻。"
+    "一次適應性訓練為什麼要帶這麼多冰鎬？"
+    jump cave_loop # 講完後，回到循環檢查，重新打開畫面
+label click_levin:
+    if not checked_levin:
+        $ checked_levin = True
+        $ cave_investigation_count += 1
+    
+    "「滋…滋…滋…」對講機裡傳來刺耳的雜音。"
+    "「是不是電池問題？請更換電池。」山下的指導員詢問。"
+    "列文換了電池，但雜音依舊。"
+    "他只能對著麥克風大喊：「大雪導致了濕度問題，目前狀況良好，計畫明天下山！」"
+    "隨後通訊徹底中斷，而列文則眉頭深鎖，似乎在思考什麼。"
+    nvl clear
+    jump cave_loop
+label click_fabre:
+    if not checked_fabre:
+        $ checked_fabre = True
+        $ cave_investigation_count += 1
+    
+    "法布拿著一罐沒有標籤的藥罐，對旁邊的隊員輕聲說："
+    "「把這個吃下去，這能加快我們身體適應高山低氧的環境。」"
+    nvl clear
+    jump cave_loop
+label click_ogin_burgin:
+    if not checked_ogin_burgin:
+        $ checked_ogin_burgin = True
+        $ cave_investigation_count += 1
+    
+    "奧金正用敏銳的目光靜靜觀察著洞穴裡的每一個成員。"
+    "他手裡緊緊抱著相機，雖然無法拍照，但他似乎在腦海中記錄著這一切。"
+    "布爾金則在一旁閉目養神。"
+    nvl clear
+    jump cave_loop
+label click_voronin_raza:
+    if not checked_voronin_raza:
+        $ checked_voronin_raza = True
+        $ cave_investigation_count += 1
+    
+    "沃寧：「因為這只是適應性訓練，我們沒有過夜裝備，還好我們都很擅長挖雪洞。」"
+    "拉扎低聲抱怨：「但羽絨服最怕潮濕了，在雪洞裡這衣服根本乾不了。」他用力擰著自己羽絨服上的雪水。"
+    "沃寧：「希望明天會放晴。」"
+    nvl clear
+    jump cave_loop
+label click_heat:
+    if not checked_heat:
+        $ checked_heat = True
+        $ cave_investigation_count += 1
+    
+    "我湊近燃燒的卡式爐，"
+    "溫暖的火焰讓我感到非常溫暖，"
+    "但同時燃燒的火焰也散發著刺鼻的氣味。"
+    "所以我____"
+    menu:
+        "遠離卡式爐":
+            "我移動到離卡式爐較遠的角落。"
+        "推倒卡式爐" if persistent.unlocked_ch3_5 or persistent.unlocked_ch3_BE5:
+            nvl clear
+            jump CH2_BE2
+    jump cave_loop
+label CH2_4_end:
+    nvl_narrator "就在這時，洞外突然傳來微弱的動靜。"
+    nvl clear
+    jump CH2_5
 label CH2_5:    #救援
     $ persistent.unlocked_ch2_5 = True
     scene game_ch2
@@ -532,14 +610,41 @@ label CH2_BE1:  #奧金
     nvl_narrator "就在食物跟水都要吃完的時候，"
     nvl_narrator "有人進來了屋子。"
     nvl_narrator "……"
-    nvl_narrator "是奧金，只有他幸免於難。"
+    nvl_narrator "是奧金，6人小隊中只有他幸免於難。"
     return
-    # TODO 可補後續
-label CH2_BE2:
-    #TODO CH2_BE2
+label CH2_BE2:  #熄滅
     $ persistent.unlocked_ch2_BE2 = True
     scene game_ch2
+    nvl_narrator "我假裝失去平衡，撞上地上的卡式爐。 "
+    nvl_narrator "「哐啷！」 一聲清脆的金屬碰撞聲在狹小的洞穴裡迴盪。"
+    nvl_narrator " 卡式爐翻倒在地，裡面燃燒著的固體酒精塊滾落出來，直接掉進了濕漉漉的雪堆裡。"
+    nvl_narrator "「嘶——」 一陣白煙升起，火苗瞬間熄滅。 "
+    nvl_narrator "整個雪洞陷入了死一般的漆黑與死寂。"
+    nvl_narrator "「不！」隊長列文驚呼一聲，立刻撲過去想撿起燃料，但已經太遲了。 "
+    nvl_narrator "那些被雪水浸濕的固體酒精已經無法再次點燃。"
+    nvl_narrator "「完了……這下我們真的要在這裡凍死了。」沃寧在黑暗中發出絕望的低語。"
+    nvl_narrator "失去唯一的熱源後，雪洞裡的溫度急遽下降。 "
+    nvl_narrator "但原本空氣中那股讓我不舒服的燃燒氣味，也隨著火焰的熄滅而漸漸消散了。"
 
+    nvl_narrator "一夜的嚴寒宛如酷刑。 "
+    nvl_narrator "沒有了卡式爐的熱度，所有人身上的濕羽絨服全都結成了一層硬邦邦的冰殼。"
+    nvl_narrator "當清晨的微光透進雪洞時，大家都凍得面色慘白，渾身不受控制地劇烈發抖。"
+    nvl_narrator "列文接通了無線電請求支援，隨後下令：「所有人……離開雪洞，立刻下山！」 "
+    nvl_narrator "大家牽引著繩索，僵硬地踏出洞口。 "
+    nvl_narrator "外頭依舊是伸手不見五指的濃霧。"
+    nvl_narrator "「大家跟緊！千萬別掉隊！」列文隊長在前方大喊。"
+    nvl_narrator "然而，長達十幾個小時在零下低溫且缺乏熱源的環境中，隊員們的人體調節系統已經瀕臨崩潰。 "
+    nvl_narrator "走不到一半的路程，拉扎和攝影師奧金的步伐越來越慢，意識開始模糊。"
+    nvl_narrator "「隊長……我不行了……好想睡一下……」奧金喃喃自語，身體搖搖欲墜。 "
+    nvl_narrator "我知道，一旦他們在這裡閉上眼睛，就永遠醒不過來了。"
+    nvl_narrator "我衝上前，死死咬住奧金的褲管，喉嚨裡發出焦急的低吼，拼命將他往前拽。 "
+    nvl_narrator "這股微小的拉力，以及我溫熱的氣息，勉強喚醒了奧金的一絲理智。 "
+    nvl_narrator "最後，奧金憑藉著頑強的意志力，走出了暴風雪。 "
+    nvl_narrator "當木屋出現在眼前時，所有人都虛脫地倒在了門口的雪地上。"
+    nvl_narrator "救援人員迅速將他們抬進屋內。 "
+    nvl_narrator "小隊全員奇蹟般地生還了， 但因為失去了卡式爐的保暖，"
+    nvl_narrator "嚴重的凍傷讓隊醫法布失去了三根手指，攝影師奧金的腳趾也面臨截肢。 "
+    nvl_narrator "他們永遠告別了登山生涯。"
     return
 label CH3_1:    #下山
     $ persistent.unlocked_ch3_1 = True
@@ -624,7 +729,6 @@ label CH3_1:    #下山
                 jump CH3_BE4 #叛變
             "咬住他的褲管，拚命想把他往山下拖" if persistent.Owner == 3:
                 jump CH3_BE1 #脫隊
-
 label CH3_2:    #撤退
     $ persistent.unlocked_ch3_2 = True
     scene game_ch3
@@ -797,10 +901,49 @@ label CH3_4:    #歷史重演
     nvl_narrator "(END)"
     $ persistent.unlocked_ch3_5 = True
     return
-label CH3_5:
+label CH3_5:    #真相?
     $ persistent.unlocked_ch3_5 = True
+
     scene game_ch3
-    # TODO CH3_5
+    nvl_narrator "…… 我猛然睜開眼睛。 "
+    nvl_narrator "眼前的電腦螢幕依然亮著， "
+    nvl_narrator "YouTube 中的影片已經結束。 "
+    nvl_narrator "原來，那只是一場夢嗎？ "
+    nvl_narrator "但我彷彿還能感受到那刺骨的寒風，"
+    nvl_narrator "以及雪洞裡令人窒息的絕望。"
+    nvl_narrator "我想從跳回影片的片段，解開我沒有完全解開的謎團："
+    jump CH3_5_menu
+label CH3_5_menu:
+    menu:
+        "「關於那異常沉重的背包與冰鎬……」 ":
+            nvl_narrator "冰鎬是國際登山圈的通用貨幣，"
+            nvl_narrator "他們可能想拿去和外國人交換裝備。"
+            nvl_narrator "但這個數量也帶多了吧。"
+            nvl_narrator "或者，他們可能背負著國家指派的秘密任務，"
+            nvl_narrator "準備去採集岩石樣本。"
+            jump CH3_5_menu
+
+        "「關於燃燒的固體酒精……」":
+            nvl_narrator "他們使用的卡式爐燃燒的是加了立德粉的固體酒精，"
+            nvl_narrator "立德粉可以固化酒精和調節燃燒速率，平常雖然無毒，"
+            nvl_narrator "但如果酒精中含有一定量的含氮有機物雜質，"
+            nvl_narrator "在高溫又缺氧的燃燒下，"
+            nvl_narrator "立德粉可能會催化這些氮有機物，"
+            nvl_narrator "轉化成氫氰酸並揮發到空氣當中。"
+            jump CH3_5_menu
+
+        "「關於神秘的藥品……」":
+            nvl_narrator "法布作為隊醫，攜帶著一種新藥，"
+            nvl_narrator "可有效地加快人體適應高原低氧的環境。"
+            nvl_narrator "列文小隊的秘密任務之一，就是使用並測試這種新藥。"
+            nvl_narrator "可最終這藥物導致了團隊身體功能紊亂，並且由於法布信任這種新藥，"
+            nvl_narrator "服用劑量比其他隊員都大，所以率先倒下。"
+            jump CH3_5_menu
+
+        "結束":
+            pass 
+    nvl_narrator "我靜靜地看著螢幕， 回想起木屋裡那些曾與我朝夕相處的隊員們。 無論真相究竟是新藥的副作用、毒氣的催化、還是人性在絕境下的崩潰， 他們最終都留在了那片白雪晴空之下。"
+    nvl_narrator "《遊戲結束》"
     return
 label CH3_BE1:  #脫隊
     $ persistent.unlocked_ch3_BE1 = True

@@ -228,7 +228,7 @@ style choice_button_text is default:
 ## 快捷選單顯示在遊戲中，以便輕鬆存取遊戲外選單。
 
 screen quick_menu():
-    if quick_menu:
+    if True:#quick_menu:
         ## 確保它出現在其他螢幕的頂端。
         zorder 100
         imagemap:
@@ -1377,8 +1377,43 @@ define bubble.expand_area = {
     "thought" : (0, 0, 0, 0),
 }
 
+##
+# 宣告變數來記錄探索進度
+default cave_investigation_count = 0
+default checked_backpack = False
+default checked_levin = False
+default checked_fabre = False
+default checked_ogin_burgin = False
+default checked_voronin_raza = False
+default checked_heat = False
+# 定義洞穴互動螢幕
+screen cave_exploration_screen():
+    #use quick_menu
+    imagemap:
+        ground "images/cave_bg.png"
+        idle "images/cave_bg.png"
+        hover "images/cave_bg.png"
+        hotspot (1658, 770, 227, 246) action Jump("click_backpack")     # 1. 背包
+        hotspot (1417, 474, 381, 284) action Jump("click_levin")        # 2. 隊長列文
+        hotspot (1164, 413, 200, 399) action Jump("click_fabre")        # 3. 隊醫法布
+        hotspot (751, 399, 406, 409) action Jump("click_ogin_burgin")   # 4. 奧金與布爾金
+        hotspot (291, 421, 455, 560) action Jump("click_voronin_raza")  # 5. 沃寧與拉扎   
+        hotspot (924, 843, 114, 95) action Jump("click_heat")           # 6. 卡式爐   
+    imagemap:
+        ground "gui/quick_menu_idle.png"
+        idle "gui/quick_menu_idle.png"
+        hover "gui/quick_menu_hover.png"
+        selected_idle "gui/quick_menu_hover.png"
 
-
+        hotspot (142, 224, 71, 72) action Skip() alternate Skip(fast=True, confirm=True) #快進
+        hotspot (141, 309, 75, 72) action [QuickSave(), Notify("進度已儲存！")]           #儲存     
+        hotspot (139, 399, 78, 72) action ShowMenu('main_menu')                          #主頁
+        hotspot (139, 488, 78, 74) action Preference("all mute", "toggle")               #禁音
+        hotspot (141, 574, 75, 78) action ShowMenu("about")                              #關於
+        hotspot (140, 667, 76, 71) action ShowMenu("help")                               #幫助
+        hotspot (140, 753, 75, 75) action ShowMenu("preferences")                        #設定
+        hotspot (140, 844, 75, 74) action ShowMenu("load")                               #載入
+        hotspot (138, 931, 79, 76) action Quit(confirm=False)                            #離開
 ################################################################################
 ## 行動裝置變體
 ################################################################################
