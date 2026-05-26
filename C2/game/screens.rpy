@@ -230,7 +230,7 @@ style choice_button_text is default:
 screen quick_menu():
     if True:#quick_menu:
         ## 確保它出現在其他螢幕的頂端。
-        zorder 100
+        zorder 500
         imagemap:
             ground "gui/quick_menu_idle.png"
             idle "gui/quick_menu_idle.png"
@@ -1106,28 +1106,28 @@ screen nvl(dialogue, items=None):
         xpos 1763
         ypos 114
         xsize 51
-        ysize 814
+        ysize 860
         
         # 設定滾動條的外觀
         # base_bar Solid("#ffffff33")  # (可選) 滾動條底槽的顏色
         thumb Solid("#000000f1")       # 滾動塊的顏色
 
-    bar:
-        value nvl_progress    # 當前數值
-        range 100         # 最大數值
+    #bar:
+    #    value nvl_progress    # 當前數值
+    #    range 100         # 最大數值
         
         # 精確座標設定
-        xpos 267
-        ypos 934
-        xsize 1475
-        ysize 44
+    #    xpos 267
+    #    ypos 934
+    #    xsize 1475
+    #    ysize 44
         
         # 樣式自訂
-        left_bar Solid("#4caf50")   # 已完成部分的顏色 (綠色)
-        right_bar Solid("#cccccc")  # 未完成部分的顏色 (灰色)
-        thumb None                   # 進度條通常不需要滑塊，設為 None
+    #    left_bar Solid("#4caf50")   # 已完成部分的顏色 (綠色)
+    #    right_bar Solid("#cccccc")  # 未完成部分的顏色 (灰色)
+    #    thumb None                   # 進度條通常不需要滑塊，設為 None
     
-    add SideImage() xalign 0.0 yalign 1.0
+    #add SideImage() xalign 0.0 yalign 1.0
 
 
 screen nvl_dialogue(dialogue):
@@ -1164,11 +1164,11 @@ style nvl_dialogue is say_dialogue
 style nvl_window:
     xfill False
     yfill False
-
+    #(282, 122, 1520, 847)
     xpos 269
-    ypos 113
+    ypos 120
     xsize 1461
-    ysize 802
+    ysize 860
 
 
 style nvl_entry:
@@ -1414,6 +1414,167 @@ screen cave_exploration_screen():
         hotspot (140, 753, 75, 75) action ShowMenu("preferences")                        #設定
         hotspot (140, 844, 75, 74) action ShowMenu("load")                               #載入
         hotspot (138, 931, 79, 76) action Quit(confirm=False)                            #離開
+# 初始解鎖的詞庫
+default unlocked_subjects = {"我"}
+default unlocked_verbs = {"觀察", "走向"}
+default unlocked_nouns = {"大廳"}
+
+# 玩家目前選中的詞
+default current_subject = "我"
+default current_verb = None
+default current_noun = None
+# 控制右側面板切換
+default right_panel_mode = "verb" 
+
+screen sentence_puzzle_game():
+    zorder 50
+    modal False
+    use quick_menu
+    # TODO quick_menu沒顯示
+    # 1. 載入你的黑框背景圖片
+    add "images/bg_puzzle_game.png"
+    
+    # =================【 左側大框：自訂文字歷史區 】=================
+    frame:
+        pos (306, 149)
+        xsize 888
+        ysize 697
+        background None
+        
+        # 使用 viewport 確保文字滿出來時可以用滾輪滾動
+        viewport id "puzzle_vp":
+            mousewheel True
+            draggable True
+            yinitial 1.0 # 每次有新對話自動滾到最下面
+            
+            vbox:
+                spacing 15 # 每一行對話之間的間距
+                
+                # 直接跑歷史紀錄的迴圈，不再依賴 NVL 傳入
+                for t in puzzle_text_history:
+                    text t:
+                        color "#000000"  # 黑色字體符合白底設計
+                        size gui.nvl_text_size          # 適合格子的字型大小
+                        line_spacing 5
+                        xsize 850        # 限制寬度讓文字能自動換行
+        vbar value YScrollValue("puzzle_vp"):
+            xpos 910
+            ypos -20
+            xsize 50
+            ysize 720
+                
+            # 設定滾動條的外觀
+            # base_bar Solid("#ffffff33")  # (可選) 滾動條底槽的顏色
+            thumb Solid("#000000f1")      
+        
+    # =================【 右側大框：詞庫選擇區 】=================
+    frame:
+        pos (1330, 126)
+        xsize 471
+        ysize 745
+        background None
+        padding (10, 10)
+        
+        vbox:
+            spacing 15
+            
+            # 右上角：動詞/名詞 切換標籤
+            hbox:
+                spacing 20
+                textbutton "動詞":
+                    action SetVariable("right_panel_mode", "verb")
+                    text_color ("#2b579a" if right_panel_mode == "verb" else "#888888")
+                    text_bold (True if right_panel_mode == "verb" else False)
+                    text_size gui.nvl_text_size
+                    
+                textbutton "名詞":
+                    action SetVariable("right_panel_mode", "noun")
+                    text_color ("#e06666" if right_panel_mode == "noun" else "#888888")
+                    text_bold (True if right_panel_mode == "noun" else False)
+                    text_size gui.nvl_text_size
+            
+            # 下方滾動列表
+            side "c r":
+                viewport id "words_vp":
+                    draggable True
+                    mousewheel True
+                    vbox:
+                        spacing 8
+                        if right_panel_mode == "verb":
+                            for v in sorted(list(unlocked_verbs)):
+                                textbutton v:
+                                    action SetVariable("current_verb", v)
+                                    text_color "#000000"
+                                    text_size gui.nvl_text_size
+                        else:
+                            for n in sorted(list(unlocked_nouns)):
+                                textbutton n:
+                                    action SetVariable("current_noun", n)
+                                    text_color "#000000"
+                                    text_size gui.nvl_text_size
+                vbar value YScrollValue("words_vp"):
+                    #xpos 471
+                    ypos -70
+                    xsize 50
+                    ysize 720
+                        
+                    # 設定滾動條的外觀
+                    # base_bar Solid("#ffffff33")  # (可選) 滾動條底槽的顏色
+                    thumb Solid("#000000f1") 
+
+    # =================【 下方長條：組合預覽區 】=================
+    frame: 
+        pos (280, 906)
+        xsize 176 ysize 78 background None
+        text current_subject color "#000000" align (0.5, 0.5) size gui.nvl_text_size bold True
+            
+    frame:
+        pos (531, 906)
+        xsize 174 ysize 78 background None
+        if current_verb:
+            text current_verb color "#2b579a" align (0.5, 0.5) size gui.nvl_text_size bold True
+        else:
+            text "動詞" color "#aaa" align (0.5, 0.5) size gui.nvl_text_size 
+                
+    frame:
+        pos (760, 906)
+        xsize 540 ysize 78 background None
+        if current_noun:
+            text current_noun color "#e06666" align (0.5, 0.5) size gui.nvl_text_size bold True
+        else:
+            text "名詞" color "#aaa" align (0.5, 0.5) size gui.nvl_text_size 
+
+    # =================【 右下角：功能按鈕點擊區 】=================
+    if current_subject and current_verb and current_noun:
+        textbutton "執行":
+            pos (1328, 906)
+            xsize 211 ysize 78
+            action Return("execute")
+            text_color "#000000" 
+            text_size gui.nvl_text_size 
+            text_bold True 
+            text_xalign 0.5
+            text_yalign 0.5
+    else:
+        textbutton "執行":
+            pos (1328, 906)
+            xsize 211 ysize 78
+            action None
+            text_color "#ffffff66" 
+            text_size gui.nvl_text_size 
+            text_xalign 0.5 
+            text_yalign 0.5
+
+    textbutton "重設":
+        pos (1587, 906)
+        xsize 211 ysize 78
+        action [SetVariable("current_verb", None), SetVariable("current_noun", None)]
+        text_color "#000000" 
+        text_size gui.nvl_text_size 
+        text_bold True 
+        text_xalign 0.5 
+        text_yalign 0.5
+
 ################################################################################
 ## 行動裝置變體
 ################################################################################

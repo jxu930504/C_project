@@ -379,7 +379,7 @@ define gui.nvl_button_xalign = 0.0
 define gui.nvl_button_size = 1400
 
 ## 字體大小
-define gui.nvl_text_size = int(42 * preferences.font_size)
+define gui.nvl_text_size = int(36 * preferences.font_size)
 
 ## 在地化 #########################################################################
 
