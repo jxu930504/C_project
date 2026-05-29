@@ -1377,7 +1377,7 @@ define bubble.expand_area = {
     "thought" : (0, 0, 0, 0),
 }
 
-##
+## 洞穴互動畫面 ########################################################################
 # 宣告變數來記錄探索進度
 default cave_investigation_count = 0
 default checked_backpack = False
@@ -1414,11 +1414,14 @@ screen cave_exploration_screen():
         hotspot (140, 753, 75, 75) action ShowMenu("preferences")                        #設定
         hotspot (140, 844, 75, 74) action ShowMenu("load")                               #載入
         hotspot (138, 931, 79, 76) action Quit(confirm=False)                            #離開
+
+## 木屋造句畫面 ########################################################################
 # 初始解鎖的詞庫
 default unlocked_subjects = {"我"}
 default unlocked_verbs = {"觀察", "走向"}
 default unlocked_nouns = {"大廳"}
-
+default unlocked_places = {"大廳"}
+default current_place = "大廳"
 # 玩家目前選中的詞
 default current_subject = "我"
 default current_verb = None
@@ -1429,9 +1432,7 @@ default right_panel_mode = "verb"
 screen sentence_puzzle_game():
     zorder 50
     modal False
-    use quick_menu
-    # TODO quick_menu沒顯示
-    # 1. 載入你的黑框背景圖片
+    #use quick_menu 
     add "images/bg_puzzle_game.png"
     
     # =================【 左側大框：自訂文字歷史區 】=================
@@ -1441,30 +1442,66 @@ screen sentence_puzzle_game():
         ysize 697
         background None
         
-        # 使用 viewport 確保文字滿出來時可以用滾輪滾動
         viewport id "puzzle_vp":
             mousewheel True
             draggable True
-            yinitial 1.0 # 每次有新對話自動滾到最下面
+            yinitial 1.0 
             
             vbox:
-                spacing 15 # 每一行對話之間的間距
+                spacing 15 
                 
-                # 直接跑歷史紀錄的迴圈，不再依賴 NVL 傳入
-                for t in puzzle_text_history:
-                    text t:
-                        color "#000000"  # 黑色字體符合白底設計
-                        size gui.nvl_text_size          # 適合格子的字型大小
-                        line_spacing 5
-                        xsize 850        # 限制寬度讓文字能自動換行
+                # [靜態] 過去的歷史紀錄
+                for t in puzzle_history:
+                    if t["text"] is not None:
+                        text t["text"]:
+                            color "#000000"
+                            size gui.nvl_text_size
+                            line_spacing 5
+                            xsize 850
+                #for t in puzzle_text_history["img"]:
+                    if t["img"] is not None:
+                        imagebutton:
+                            # 這裡將圖片限制在最大寬度 250，高度 150，自動等比例縮放 (fit="contain")
+                            idle Transform(t["img"], xysize=(500, 500), fit="contain")
+                            action Show("image_popup_viewer", img_path=t["img"])
+
+                # [動態] 當前最新的一句話
+                if current_puzzle_text != "":
+                    if puzzle_is_typing:
+                        # 正在打字中：啟動 slow_cps，不放閃標
+                        text current_puzzle_text:
+                            color "#000000"
+                            size gui.nvl_text_size
+                            line_spacing 5
+                            xsize 850
+                            slow_cps True  # 【關鍵】純 Screen 的打字機效果
+                        
+                        # 當字打完時自動關閉聲音並顯示閃標
+                        if preferences.text_cps == 0:
+                            timer 0.01 action [SetVariable("puzzle_is_typing", False), Stop("sound")]
+                        else:
+                            # 依據字數與玩家設定的打字速度計算時間，加 0.1 秒緩衝
+                            $ type_duration = len(current_puzzle_text) / float(preferences.text_cps)
+                            timer type_duration + 0.1 action [SetVariable("puzzle_is_typing", False), Stop("sound")]
+                            
+                    else:
+                        # 打字完畢：瞬間顯示完整文字，並用文字標籤 {image=...} 將閃標無縫接在最後面！
+                        text current_puzzle_text + " {image=typing_cursor}":
+                            color "#000000"
+                            size gui.nvl_text_size
+                            line_spacing 5
+                            xsize 850
+                        # 同樣地，如果當前的句子有配圖，顯示縮圖
+                        if current_puzzle_img is not None:
+                            imagebutton:
+                                idle Transform(current_puzzle_img, xysize=(500, 500), fit="contain")
+                                action Show("image_popup_viewer", img_path=current_puzzle_img)
+                                # 如果你希望打字完才顯示圖片，可以把這段縮排移到 else (打字完畢) 區塊裡
         vbar value YScrollValue("puzzle_vp"):
             xpos 910
-            ypos -20
+            ypos -17
             xsize 50
             ysize 720
-                
-            # 設定滾動條的外觀
-            # base_bar Solid("#ffffff33")  # (可選) 滾動條底槽的顏色
             thumb Solid("#000000f1")      
         
     # =================【 右側大框：詞庫選擇區 】=================
@@ -1480,22 +1517,30 @@ screen sentence_puzzle_game():
             
             # 右上角：動詞/名詞 切換標籤
             hbox:
-                spacing 20
+                spacing 8
                 textbutton "動詞":
                     action SetVariable("right_panel_mode", "verb")
                     text_color ("#2b579a" if right_panel_mode == "verb" else "#888888")
                     text_bold (True if right_panel_mode == "verb" else False)
-                    text_size gui.nvl_text_size
+                    text_size (min(gui.nvl_text_size, 35))
                     
                 textbutton "名詞":
                     action SetVariable("right_panel_mode", "noun")
                     text_color ("#e06666" if right_panel_mode == "noun" else "#888888")
                     text_bold (True if right_panel_mode == "noun" else False)
-                    text_size gui.nvl_text_size
-            
+                    text_size (min(gui.nvl_text_size, 35))
+
+                textbutton "地點":
+                    action SetVariable("right_panel_mode", "place")
+                    text_color ("#6aa84f" if right_panel_mode == "place" else "#888888") 
+                    text_bold (True if right_panel_mode == "place" else False)
+                    text_size (min(gui.nvl_text_size, 35))
             # 下方滾動列表
-            side "c r":
+            hbox:
+                spacing 15
                 viewport id "words_vp":
+                    xsize 380  
+                    ysize 650
                     draggable True
                     mousewheel True
                     vbox:
@@ -1506,21 +1551,29 @@ screen sentence_puzzle_game():
                                     action SetVariable("current_verb", v)
                                     text_color "#000000"
                                     text_size gui.nvl_text_size
+                        elif right_panel_mode == "place":
+                            for p in sorted(list(unlocked_places)):
+                                textbutton p:
+                                    action SetVariable("current_place", p)
+                                    # 重點在這裡：如果 p 等於當前地點，文字就變色(例如亮橘色)，否則維持黑色
+                                    text_color ("#e69138" if p == current_place else "#000000")
+                                    text_bold (True if p == current_place else False) # 當前地點額外加粗
+                                    text_size gui.nvl_text_size
                         else:
                             for n in sorted(list(unlocked_nouns)):
                                 textbutton n:
                                     action SetVariable("current_noun", n)
                                     text_color "#000000"
                                     text_size gui.nvl_text_size
-                vbar value YScrollValue("words_vp"):
-                    #xpos 471
-                    ypos -70
-                    xsize 50
-                    ysize 720
-                        
-                    # 設定滾動條的外觀
-                    # base_bar Solid("#ffffff33")  # (可選) 滾動條底槽的顏色
-                    thumb Solid("#000000f1") 
+        vbar value YScrollValue("words_vp"):
+            xpos 390#(1735, 140)
+            ypos 5
+            xsize 50
+            ysize 720
+                            
+            # 設定滾動條的外觀
+            # base_bar Solid("#ffffff33")  # (可選) 滾動條底槽的顏色
+            thumb Solid("#000000f1") 
 
     # =================【 下方長條：組合預覽區 】=================
     frame: 
@@ -1542,7 +1595,7 @@ screen sentence_puzzle_game():
         if current_noun:
             text current_noun color "#e06666" align (0.5, 0.5) size gui.nvl_text_size bold True
         else:
-            text "名詞" color "#aaa" align (0.5, 0.5) size gui.nvl_text_size 
+            text "名詞/地點" color "#aaa" align (0.5, 0.5) size gui.nvl_text_size 
 
     # =================【 右下角：功能按鈕點擊區 】=================
     if current_subject and current_verb and current_noun:
@@ -1574,114 +1627,21 @@ screen sentence_puzzle_game():
         text_bold True 
         text_xalign 0.5 
         text_yalign 0.5
+    use quick_menu
 
-################################################################################
-## 行動裝置變體
-################################################################################
+# =================【 圖片放大彈出視窗 】=================
+screen image_popup_viewer(img_path):
+    zorder 100    # 確保在最上層
+    modal True    # 阻擋玩家點擊背後的按鈕
+    
+    # 用一個佔滿全螢幕的隱形按鈕當作背景，點擊任何地方就會關閉放大圖
+    button:
+        action Hide("image_popup_viewer")
+        background Solid("#000000cc") # 半透明黑底，讓視覺聚焦在圖片上
+        xfill True
+        yfill True
+        
+    # 在畫面正中央顯示完整圖片
+    add img_path:
+        align (0.5, 0.5)
 
-style pref_vbox:
-    variant "medium"
-    xsize 675
-
-## 由於可能不存在滑鼠，我們將快捷選單替換為使用更少、更大、更容易觸控的按鈕的版
-## 本。
-screen quick_menu():
-    variant "touch"
-
-    zorder 100
-
-    if quick_menu:
-
-        hbox:
-            style "quick_menu"
-            style_prefix "quick"
-
-            textbutton _("返回") action Rollback()
-            textbutton _("略過") action Skip() alternate Skip(fast=True, confirm=True)
-            textbutton _("自動") action Preference("auto-forward", "toggle")
-            textbutton _("選單") action ShowMenu()
-
-
-style window:
-    variant "small"
-    background "gui/phone/textbox.png"
-
-style radio_button:
-    variant "small"
-    foreground "gui/phone/button/radio_[prefix_]foreground.png"
-
-style check_button:
-    variant "small"
-    foreground "gui/phone/button/check_[prefix_]foreground.png"
-
-style nvl_window:
-    variant "small"
-    background "gui/phone/nvl.png"
-
-style main_menu_frame:
-    variant "small"
-    background "gui/phone/overlay/main_menu.png"
-
-style game_menu_outer_frame:
-    variant "small"
-    background "gui/phone/overlay/game_menu.png"
-
-style game_menu_navigation_frame:
-    variant "small"
-    xsize 510
-
-style game_menu_content_frame:
-    variant "small"
-    top_margin 0
-
-style game_menu_viewport:
-    variant "small"
-    xsize 1305
-
-style pref_vbox:
-    variant "small"
-    xsize 600
-
-style bar:
-    variant "small"
-    ysize gui.bar_size
-    left_bar Frame("gui/phone/bar/left.png", gui.bar_borders, tile=gui.bar_tile)
-    right_bar Frame("gui/phone/bar/right.png", gui.bar_borders, tile=gui.bar_tile)
-
-style vbar:
-    variant "small"
-    xsize gui.bar_size
-    top_bar Frame("gui/phone/bar/top.png", gui.vbar_borders, tile=gui.bar_tile)
-    bottom_bar Frame("gui/phone/bar/bottom.png", gui.vbar_borders, tile=gui.bar_tile)
-
-style scrollbar:
-    variant "small"
-    ysize gui.scrollbar_size
-    base_bar Frame("gui/phone/scrollbar/horizontal_[prefix_]bar.png", gui.scrollbar_borders, tile=gui.scrollbar_tile)
-    thumb Frame("gui/phone/scrollbar/horizontal_[prefix_]thumb.png", gui.scrollbar_borders, tile=gui.scrollbar_tile)
-
-style vscrollbar:
-    variant "small"
-    xsize gui.scrollbar_size
-    base_bar Frame("gui/phone/scrollbar/vertical_[prefix_]bar.png", gui.vscrollbar_borders, tile=gui.scrollbar_tile)
-    thumb Frame("gui/phone/scrollbar/vertical_[prefix_]thumb.png", gui.vscrollbar_borders, tile=gui.scrollbar_tile)
-
-style slider:
-    variant "small"
-    ysize gui.slider_size
-    base_bar Frame("gui/phone/slider/horizontal_[prefix_]bar.png", gui.slider_borders, tile=gui.slider_tile)
-    thumb "gui/phone/slider/horizontal_[prefix_]thumb.png"
-
-style vslider:
-    variant "small"
-    xsize gui.slider_size
-    base_bar Frame("gui/phone/slider/vertical_[prefix_]bar.png", gui.vslider_borders, tile=gui.slider_tile)
-    thumb "gui/phone/slider/vertical_[prefix_]thumb.png"
-
-style slider_vbox:
-    variant "small"
-    xsize None
-
-style slider_slider:
-    variant "small"
-    xsize 900

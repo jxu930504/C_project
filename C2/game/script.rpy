@@ -101,8 +101,14 @@ define nvl_narrator = Character(None, kind=nvl, callback=type_sound, ctc="typing
 
 define nvl_dark = Character(None, kind=nvl, screen="nvl_black",what_color="#ffffff", callback=type_sound, ctc="typing_cursor", ctc_position="nestled")
 # 定義一個專屬於造句遊戲的 NVL 旁白角色
-define p_nvl = Character(None, kind=nvl, screen="sentence_puzzle_text", callback=type_sound, ctc="typing_cursor", ctc_position="nestled")
-
+define puzzle_narrator = Character(
+    None, 
+    window_style="empty", 
+    screen="puzzle_left_panel",     # 【關鍵】指定使用我們接下來要建的自訂畫面
+    callback=type_sound,            # 綁定你的打字音函式
+    ctc="typing_cursor",                # 綁定閃標
+    ctc_position="nestled"          # 讓閃標緊跟在文字的最後面
+)
 
 # === 2. ADV 模式角色 ===
 define p = Character('我', callback=type_sound, ctc="typing_cursor", ctc_position="nestled")
@@ -1139,16 +1145,43 @@ default puzzle_text_history = [
     "【系統提示】：請透過點擊詞庫中的詞彙組成一個完整的句子，進行探索。"
 ]
 
-# 快速添加文字並滾動到最下方的輔助函式
-init python:
-    def add_puzzle_text(text):
-        global puzzle_text_history
-        puzzle_text_history.append(text)
+# 添加文字
+#init python:
+#    def add_puzzle_text(text):
+#        global puzzle_text_history
+#        puzzle_text_history.append(text)
+# 宣告狀態變數
 
+default puzzle_history = [{"text":None, "img": None}]
+default current_puzzle_text = "【系統提示】：請透過點擊詞庫中的詞彙組成一個完整的句子，進行探索。"
+default current_puzzle_img = None
+default puzzle_is_typing = False
+
+init python:
+
+
+    def add_puzzle_text(text, img=None):
+        global puzzle_history, current_puzzle_text, current_puzzle_img, puzzle_is_typing
+        
+        # 1. 如果有上一句話，把「文字」跟「圖片」一起打包存入歷史紀錄
+        if current_puzzle_text != "":
+            puzzle_history.append({"text": current_puzzle_text, "img": current_puzzle_img})
+            
+        # 2. 設定新的句子與圖片，並開啟打字狀態
+        current_puzzle_text = text
+        current_puzzle_img = img
+        puzzle_is_typing = True
+        
+        # 3. 播放打字音
+        renpy.music.play("audio/clicks.mp3", channel="sound", loop=True)
+        
+        # 4. 強制刷新畫面以啟動打字效果
+        renpy.restart_interaction()
 
 label start_puzzle_game:
     # 1. 遊戲開始，直接 show screen 
     show screen sentence_puzzle_game
+    $ quick_menu = True
     
 # --- 核心控制環節 ---
 label puzzle_main_loop: #TODO 圖片待加入
@@ -1214,7 +1247,7 @@ label puzzle_main_loop: #TODO 圖片待加入
         jump puzzle_main_loop
 
     elif s == "我" and v == "觀察" and n == "桌子":
-        $ add_puzzle_text("這張桌子上放了一張隊員們剛來到這裡訓練時拍的合照。")
+        $ add_puzzle_text("這張桌子上放了一張隊員們剛來到這裡訓練時拍的合照。", "images/合照_large.png")
         $ unlocked_nouns.add("合照")
         jump puzzle_main_loop
 
@@ -1250,7 +1283,9 @@ label puzzle_main_loop: #TODO 圖片待加入
         jump puzzle_main_loop
 
     elif s == "我" and v == "觀察" and n == "證書":
-        $ add_puzzle_text("牆上有一張證書格外顯眼，上面寫著體育登山大師。\n（獲得線索：列文的密碼圖）")
+        $ add_puzzle_text("牆上有一張證書格外顯眼，那是一張登頂的證書。", "images/列文_large.png")
+        #$ add_puzzle_text("img:列文_large.png")
+        
         jump puzzle_main_loop
 
     # 2. 法布房間
@@ -1264,7 +1299,7 @@ label puzzle_main_loop: #TODO 圖片待加入
         jump puzzle_main_loop
 
     elif s == "我" and v == "觀察" and n == "實驗記錄":
-        $ add_puzzle_text("這份實驗紀錄似乎是在試驗一種能更快適應高山的新種特效藥，上面寫了個成員的用藥量及一些身體數據。\n（獲得線索：法布的密碼圖）")
+        $ add_puzzle_text("這份實驗紀錄似乎是在試驗一種能更快適應高山的新種特效藥，上面寫了個成員的用藥量及一些身體數據。", "images/法布_large.png")
         jump puzzle_main_loop
 
     # 3. 奧金房間
@@ -1274,7 +1309,8 @@ label puzzle_main_loop: #TODO 圖片待加入
         jump puzzle_main_loop
 
     elif s == "我" and v == "觀察" and n == "相片":
-        $ add_puzzle_text("這是一張奧金和家人的合照。\n（獲得線索：奧金的密碼圖）")
+        $ add_puzzle_text("這是一張奧金和家人的合照。")
+        $ add_puzzle_text("...照片角落的符號是甚麼?", "images/奧金_large.png")
         jump puzzle_main_loop
 
     # 4. 布爾金房間
@@ -1284,27 +1320,27 @@ label puzzle_main_loop: #TODO 圖片待加入
         jump puzzle_main_loop
 
     elif s == "我" and v == "觀察" and n == "健身器材":
-        $ add_puzzle_text("健身器材上透露著使用痕跡，看得出來經常使用。\n（獲得線索：布爾金的密碼圖）")
+        $ add_puzzle_text("健身器材上透露著使用痕跡，看得出來經常使用。", "images/布爾金_large.png")
         jump puzzle_main_loop
 
     # 5. 拉扎房間
     elif s == "我" and v == "觀察" and n == "拉扎的房間":
-        $ add_puzzle_text("這個房間沒有太多花俏的裝飾，桌角放著幾卷備用的相機底片，地上放著打開的【防水塗料】。")
+        $ add_puzzle_text("這個房間沒有太多花俏的裝飾，桌角放著幾卷備用的相機底片，桌上放著用過的【防水塗料】。")
         $ unlocked_nouns.add("防水塗料")
         jump puzzle_main_loop
 
     elif s == "我" and v == "觀察" and n == "防水塗料":
-        $ add_puzzle_text("（獲得線索：拉扎的密碼圖）")
+        $ add_puzzle_text("瓶身上的奇怪符號好像在哪裡看過。", "images/拉扎_large.png")
         jump puzzle_main_loop
 
     # 6. 沃寧房間
     elif s == "我" and v == "觀察" and n == "沃寧的房間":
-        $ add_puzzle_text("這裡沒有任何多餘的物品，只放著極度精簡且實用的【生存裝備】以及禦寒的羽絨服。")
-        $ unlocked_nouns.add("生存裝備")
+        $ add_puzzle_text("這裡沒有任何多餘的物品，只放著極度精簡且實用的生存裝備以及禦寒的【羽絨服】。")
+        $ unlocked_nouns.add("羽絨服")
         jump puzzle_main_loop
 
-    elif s == "我" and v == "觀察" and n == "生存裝備":
-        $ add_puzzle_text("（獲得線索：沃寧的密碼圖）")
+    elif s == "我" and v == "觀察" and n == "羽絨服":
+        $ add_puzzle_text("我輕輕蹭了一下沃寧的羽絨服，有張標籤掉到了地上。", "images/沃寧_large.png")
         jump puzzle_main_loop
 
     # ==================== 【萬用錯誤防呆】 ====================
