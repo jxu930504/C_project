@@ -341,8 +341,6 @@ define gui.history_text_xalign = 0.0
 
 ## NVL-模式 ######################################################################
 ##
-## NVL 模式畫面顯示 NVL 模式角色所說的對話
-## TODO:GUI設計完微調 
 ## NVL 模式背景視窗的背景邊框
 define gui.nvl_borders = Borders(0, 15, 0, 30)
 

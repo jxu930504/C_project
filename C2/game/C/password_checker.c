@@ -12,7 +12,7 @@
 extern "C" {
 #endif
 
-const char* CORRECT_PASSWORD = "8352";
+const char* CORRECT_PASSWORD = "98541";
 
 
 EXPORT int check_password(const char* input_password) {

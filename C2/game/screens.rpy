@@ -1383,7 +1383,8 @@ default cave_investigation_count = 0
 default checked_backpack = False
 default checked_levin = False
 default checked_fabre = False
-default checked_ogin_burgin = False
+default checked_ogin = False
+default checked_burgin = False
 default checked_voronin_raza = False
 default checked_heat = False
 # 定義洞穴互動螢幕
@@ -1396,25 +1397,25 @@ screen cave_exploration_screen():
         hotspot (1658, 770, 227, 246) action Jump("click_backpack")     # 1. 背包
         hotspot (1417, 474, 381, 284) action Jump("click_levin")        # 2. 隊長列文
         hotspot (1164, 413, 200, 399) action Jump("click_fabre")        # 3. 隊醫法布
-        hotspot (751, 399, 406, 409) action Jump("click_ogin_burgin")   # 4. 奧金與布爾金
-        hotspot (291, 421, 455, 560) action Jump("click_voronin_raza")  # 5. 沃寧與拉扎   
-        hotspot (924, 843, 114, 95) action Jump("click_heat")           # 6. 卡式爐   
-    imagemap:
-        ground "gui/quick_menu_idle.png"
-        idle "gui/quick_menu_idle.png"
-        hover "gui/quick_menu_hover.png"
-        selected_idle "gui/quick_menu_hover.png"
-
-        hotspot (142, 224, 71, 72) action Skip() alternate Skip(fast=True, confirm=True) #快進
-        hotspot (141, 309, 75, 72) action [QuickSave(), Notify("進度已儲存！")]           #儲存     
-        hotspot (139, 399, 78, 72) action ShowMenu('main_menu')                          #主頁
-        hotspot (139, 488, 78, 74) action Preference("all mute", "toggle")               #禁音
-        hotspot (141, 574, 75, 78) action ShowMenu("about")                              #關於
-        hotspot (140, 667, 76, 71) action ShowMenu("help")                               #幫助
-        hotspot (140, 753, 75, 75) action ShowMenu("preferences")                        #設定
-        hotspot (140, 844, 75, 74) action ShowMenu("load")                               #載入
-        hotspot (138, 931, 79, 76) action Quit(confirm=False)                            #離開
-
+        hotspot (1014, 442, 120, 351) action Jump("click_ogin")          # 4. 奧金
+        hotspot (759, 424, 186, 343) action Jump("click_burgin")         # 5. 布爾金
+        hotspot (291, 421, 455, 560) action Jump("click_voronin_raza")  # 6. 沃寧與拉扎   
+        hotspot (924, 843, 114, 95) action Jump("click_heat")           # 7. 卡式爐   
+        
+    use quick_menu
+screen cave_choice(items, dialogue=None):
+    style_prefix "choice"
+    
+    # 假設你想把洞穴的選項放在畫面右下角
+    vbox:
+        align (0.5, 0.5)
+        spacing 10
+        for i in items:
+            textbutton i.caption:
+                action i.action
+                #background "images/cave_button_bg.png" # 專屬的石頭風格背景
+                text_color "#000000"
+                text_hover_color "#ffffff"
 ## 木屋造句畫面 ########################################################################
 # 初始解鎖的詞庫
 default unlocked_subjects = {"我"}
@@ -1461,21 +1462,25 @@ screen sentence_puzzle_game():
                 
                 # [靜態] 過去的歷史紀錄
                 for t in puzzle_history:
+                    if t["img"] is not None:
+                        imagebutton:
+                            # 這裡將圖片限制在最大寬度 250，高度 150，自動等比例縮放 (fit="contain")
+                            idle Transform(t["img"], xysize=(500, 500), fit="contain")
+                            action Show("image_popup_viewer", img_path=t["img"])
                     if t["text"] is not None:
                         text t["text"]:
                             color "#000000"
                             size gui.nvl_text_size
                             line_spacing 5
                             xsize 850
-                #for t in puzzle_text_history["img"]:
-                    if t["img"] is not None:
-                        imagebutton:
-                            # 這裡將圖片限制在最大寬度 250，高度 150，自動等比例縮放 (fit="contain")
-                            idle Transform(t["img"], xysize=(500, 500), fit="contain")
-                            action Show("image_popup_viewer", img_path=t["img"])
-
                 # [動態] 當前最新的一句話
                 if current_puzzle_text != "":
+                    # 顯示縮圖
+                    if current_puzzle_img is not None:
+                            imagebutton:
+                                idle Transform(current_puzzle_img, xysize=(500, 500), fit="contain")
+                                action Show("image_popup_viewer", img_path=current_puzzle_img)
+                                # 如果你希望打字完才顯示圖片，可以把這段縮排移到 else (打字完畢) 區塊裡
                     if puzzle_is_typing:
                         # 正在打字中：啟動 slow_cps，不放閃標
                         text current_puzzle_text:
@@ -1500,12 +1505,7 @@ screen sentence_puzzle_game():
                             size gui.nvl_text_size
                             line_spacing 5
                             xsize 850
-                        # 同樣地，如果當前的句子有配圖，顯示縮圖
-                        if current_puzzle_img is not None:
-                            imagebutton:
-                                idle Transform(current_puzzle_img, xysize=(500, 500), fit="contain")
-                                action Show("image_popup_viewer", img_path=current_puzzle_img)
-                                # 如果你希望打字完才顯示圖片，可以把這段縮排移到 else (打字完畢) 區塊裡
+
         vbar value YScrollValue("puzzle_vp"):
             xpos 910
             ypos -17
@@ -1532,18 +1532,21 @@ screen sentence_puzzle_game():
                     text_color ("#2b579a" if right_panel_mode == "verb" else "#888888")
                     text_bold (True if right_panel_mode == "verb" else False)
                     text_size (min(gui.nvl_text_size, 35))
+                    text_hover_bold True
                     
                 textbutton "名詞":
                     action SetVariable("right_panel_mode", "noun")
                     text_color ("#e06666" if right_panel_mode == "noun" else "#888888")
                     text_bold (True if right_panel_mode == "noun" else False)
                     text_size (min(gui.nvl_text_size, 35))
+                    text_hover_bold True
 
                 textbutton "地點":
                     action SetVariable("right_panel_mode", "place")
                     text_color ("#6aa84f" if right_panel_mode == "place" else "#888888") 
                     text_bold (True if right_panel_mode == "place" else False)
                     text_size (min(gui.nvl_text_size, 35))
+                    text_hover_bold True
             # 下方滾動列表
             hbox:
                 spacing 15
@@ -1560,15 +1563,14 @@ screen sentence_puzzle_game():
                                     action SetVariable("current_verb", v)
                                     text_color "#000000"
                                     text_size gui.nvl_text_size
+                                    text_hover_bold True
                         elif right_panel_mode == "place":
                             for p in sorted(list(unlocked_places)):
                                 textbutton p:
                                     action SetVariable("current_noun", p)
-                                    #$ current_place = $ current_noun
-                                    # 重點在這裡：如果 p 等於當前地點，文字就變色(例如亮橘色)，否則維持黑色
-                                    text_color ("#e69138" if p == current_place else "#000000")
-                                    text_bold (True if p == current_place else False) # 當前地點額外加粗
+                                    text_color ("#6aa84f" if p == current_place else "#000000")
                                     text_size gui.nvl_text_size
+                                    text_hover_bold True
                         elif right_panel_mode == "noun":
                             
                             # 1. 取得「當前地點」擁有的所有物品 (如果該地點沒有設定，預設給空集合)
@@ -1586,6 +1588,7 @@ screen sentence_puzzle_game():
                                     action SetVariable("current_noun", n)
                                     text_color "#000000"
                                     text_size (max(gui.nvl_text_size, 30))
+                                    text_hover_bold True
                                     
                             # 5. 後置顯示：其他地點的物品 (灰色，不可點擊)
                             for n in sorted(list(disabled_nouns)):
@@ -1674,33 +1677,55 @@ screen image_popup_viewer(img_path):
         align (0.5, 0.5)
 # =================【 輸入視窗 】=================
 screen popup_input(prompt):
-    # 設定 modal 為 True，確保玩家在輸入完成前不能點擊背景的其他東西
+    default current_text = ""
+
+    # 確保玩家不能點擊背景
     modal True 
     
-    # (可選) 添加一個半透明的黑色背景，讓彈出視窗更突出
+    # 半透明黑色背景 
     add "#00000080" 
 
-    # 建立彈出視窗的框架
+    # 彈出視窗框架
     frame:
         xalign 0.5
         yalign 0.5
-        xysize (400, 150) # 可以根據你的需求調整視窗大小
-        padding (20, 20)
+        xsize 400 
+        padding (30, 30)
 
         vbox:
             xalign 0.5
-            yalign 0.5
             spacing 20
 
-            # 顯示提示文字 (例如："請輸入密碼：")
+            # 顯示提示文字
             text prompt:
                 xalign 0.5
                 text_align 0.5
 
-            # 這是實際處理輸入的元件
+            # 顯示剩餘機會
+            text "剩餘機會：[3-lock_errors]":
+                xalign 0.5
+                color "#ffaaaa" 
+                size 22
+
+            # 輸入框
             input:
                 id "input"
                 xalign 0.5
-                length 20 # (可選) 限制輸入的最大字數
-                # color "#ffffff" # (可選) 設定輸入文字的顏色
+                length 20 
+                # 【修改】將輸入框的值綁定到 current_text 變數
+                value ScreenVariableInputValue("current_text")
+
+            # 【新增】使用 hbox 將按鈕水平排列
+            hbox:
+                xalign 0.5
+                spacing 40 # 兩個按鈕之間的距離
+
+                # 確認按鈕
+                textbutton "確認":
+                    # 按下後，回傳目前綁定的文字變數
+                    action Return(current_text) 
+                
+                # 取消按鈕
+                textbutton "取消":
+                    action Jump("puzzle_main_loop") # 按下後回傳 None 代表取消
 

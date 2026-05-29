@@ -9,20 +9,6 @@ image typing_cursor:
     repeat
 
 init python:
-    def type_sound(event, interact=True, **kwargs): #打字音
-
-        if not interact:
-            return
-        # 當文字正在「顯示中」 (show) 且玩家沒有跳過動畫時播放
-        if event == "show":
-            # 這裡播放你的音效檔案，建議使用非常短促的聲音 (0.1秒左右)
-            # loop=True 代表如果文字沒跑完就一直循環播放
-            renpy.music.play("audio/clicks.mp3", channel="sound", loop=True)
-        
-        # 當文字顯示「完畢」 (slow_done) 或被玩家「跳過」 (end) 時停止聲音
-        elif event == "slow_done" or event == "end":
-            renpy.music.stop(channel="sound")
-    
     #引入C函式
     # TODO 重新編譯
     import ctypes
@@ -41,7 +27,21 @@ init python:
         dll_loaded = True
     except Exception as e:
         dll_loaded = False
+    
+    #打字音
+    def type_sound(event, interact=True, **kwargs): #打字音
 
+        if not interact:
+            return
+        # 當文字正在「顯示中」 (show) 且玩家沒有跳過動畫時播放
+        if event == "show":
+            # 這裡播放你的音效檔案，建議使用非常短促的聲音 (0.1秒左右)
+            # loop=True 代表如果文字沒跑完就一直循環播放
+            renpy.music.play("audio/clicks.mp3", channel="sound", loop=True)
+        
+        # 當文字顯示「完畢」 (slow_done) 或被玩家「跳過」 (end) 時停止聲音
+        elif event == "slow_done" or event == "end":
+            renpy.music.stop(channel="sound")
     #清空存檔
     def reset_all_progress():
         # 清除所有的 persistent 資料
@@ -52,6 +52,24 @@ init python:
         
         # 重新啟動遊戲，回到主選單
         renpy.full_restart()
+    # 木屋探索文字
+    def add_puzzle_text(text, img=None):
+        global puzzle_history, current_puzzle_text, current_puzzle_img, puzzle_is_typing
+        
+        # 1. 如果有上一句話，把「文字」跟「圖片」一起打包存入歷史紀錄
+        if current_puzzle_text != "":
+            puzzle_history.append({"text": current_puzzle_text, "img": current_puzzle_img})
+            
+        # 2. 設定新的句子與圖片，並開啟打字狀態
+        current_puzzle_text = text
+        current_puzzle_img = img
+        puzzle_is_typing = True
+        
+        # 3. 播放打字音
+        renpy.music.play("audio/clicks.mp3", channel="sound", loop=True)
+        
+        # 4. 強制刷新畫面以啟動打字效果
+        renpy.restart_interaction()
 
 
     
@@ -324,26 +342,14 @@ label CH1_3:    #訓練
         nvl_narrator "而我的主人正是登山隊的隊員。"
     nvl_narrator "平常，我會跟他們一起去做登山的基本訓練，"
     nvl_narrator "休息時，他們也會陪我一起玩。"
+    nvl_narrator "雖然一開始我完全聽不懂他們說的語言，"
+    nvl_narrator "但在一段時間後我已經能夠認識幾個單字。"
+    nvl_narrator "而他似乎也發現了這件事，所以他在房間裝了幾個按鈕，"
+    nvl_narrator "讓我可以表達需求，"
+    nvl_narrator "我最常按的是食物。"
+    nvl_narrator "他偶爾還會用雙手跟我溝通，"
+    nvl_narrator "像是要不要出去玩。"
 
-    nvl_narrator "響片遊戲(45秒)"
-    nvl_narrator "遊戲說明:當聽到響片聲，便按下空白鍵，越到後面越快"
-    #TODO 遊戲未完成
-    menu:
-        "通過":
-            $ persistent.pass_game = 1
-            nvl_narrator "我們玩了響片遊戲一個月之後，"
-            nvl_narrator "他在房間裝了幾個按鈕，"
-            nvl_narrator "讓我可以表達需求，"
-            nvl_narrator "我最常按的是食物。"
-            nvl_narrator "他偶爾還會用雙手跟我溝通，"
-            nvl_narrator "像是要不要出去玩。"
-        "未通過":
-            $ persistent.pass_game = 0
-            nvl_narrator "雖然我玩的不怎麼樣，"
-            nvl_narrator "但他還是很有耐心。"
-            nvl_narrator "我們溝通還是主要透過他的解讀，"
-            nvl_narrator "偶爾會用雙手跟我溝通，"
-            nvl_narrator "像是要不要出去玩。"
     nvl_narrator "他時常還會把我當作訓練的一環:"
 
     if(persistent.Owner==1): #1:隊長 2:隊醫 3:沃寧/拉札 4:奧金 5:布爾金
@@ -380,7 +386,7 @@ label CH1_3:    #訓練
         nvl_narrator "他會在房間裡做一些體能訓練。"
         nvl_narrator "有時會綁上負重袋，"
         nvl_narrator "再把我放到他的背上一起訓練。"
-        nvl_narrator "他是登山隊中最強狀的人，"
+        nvl_narrator "他是登山隊中最強壯的人，"
         nvl_narrator "所以他的登山包也是最重的，"
         nvl_narrator "負責背負團隊需要的各種裝備。"
         nvl_narrator "隨著實地訓練的日子越來越近，"
@@ -389,27 +395,18 @@ label CH1_3:    #訓練
     nvl_narrator "日子到了要實地訓練的那一天，"
     nvl_narrator "我才驚覺這一天就是影片所說的那一天。"
 
-    if(persistent.pass_game):
-        nvl_narrator "我急忙的用按鈕按「不要」，"
-        nvl_narrator "他蹲下來問我什麼不要。"
-        nvl_narrator "我圍著他轉，"
-        nvl_narrator "還是沒能表達出來，"
-        nvl_narrator "讓他們不要去實地訓練。"
-        nvl_narrator "最後到了出發時間，"
-        nvl_narrator "他們一行人就出發了。"
-    else:
-        nvl_narrator "我急忙的用手去扒他"
-        nvl_narrator "我急忙的用手去扒他，"
-        nvl_narrator "他蹲下來問我怎麼了。"
-        nvl_narrator "我圍著他轉，"
-        nvl_narrator "還是沒能表達出來，"
-        nvl_narrator "讓他們不要去實地訓練。"
-        nvl_narrator "最後到了出發時間，"
-        nvl_narrator "他們一行人就出發了。"
-    nvl_narrator "我知道即使我阻止了他們"
-    nvl_narrator "他們還是會照常出發"
-    nvl_narrator "因為他們是國家資助的登山隊"
-    nvl_narrator "必須完成國家指派的任務"
+    nvl_narrator "我急忙的用按鈕按「不要」，"
+    nvl_narrator "他蹲下來問我什麼不要。"
+    nvl_narrator "我圍著他轉，"
+    nvl_narrator "還是沒能表達出來，"
+    nvl_narrator "讓他們不要去實地訓練。"
+    nvl_narrator "最後到了出發時間，"
+    nvl_narrator "他們一行人就出發了。"
+
+    nvl_narrator "其實，我知道即使我嘗試阻止他們，"
+    nvl_narrator "他們還是會照常出發。"
+    nvl_narrator "因為他們是國家資助的登山隊，"
+    nvl_narrator "必須完成國家指派的任務。"
     nvl_narrator "……"
 
     nvl clear
@@ -429,20 +426,10 @@ label CH2_1:    #登山
     nvl_narrator "也許我能做什麼，"
     nvl_narrator "但木屋的大門被鎖上了，我無法離開這裡。"
 label CH2_2:    #木屋
-    #TODO 探索
     $ persistent.unlocked_ch2_2 = True
     scene game_ch2
-    nvl_narrator "(房間探索)"
     nvl clear
     jump start_puzzle_game
-
-    $ user_input = renpy.input("請輸入密碼：")
-    $ is_correct = my_lib.check_password(user_input.encode('utf-8'))
-    if is_correct == 1:
-        "(大門已開啟)"
-        jump CH2_3
-    else:
-        jump CH2_BE1
 label CH2_3:    #狂奔
     $ persistent.unlocked_ch2_3 = True
     scene game_ch2
@@ -481,13 +468,13 @@ label CH2_3:    #狂奔
     nvl_narrator "而在這種環境下，衣服根本無法乾透。"
 label CH2_4:    #雪洞
     $ persistent.unlocked_ch2_4 = True
-    scene game_ch2
-    nvl_narrator "我決定悄悄在狹小的洞穴裡巡視，看看大家都在做些什麼。"
-    nvl clear
+    $ cave_investigation_count = 0
     scene cave_bg
+    "既然來到這裡了，我決定悄悄在狹小的洞穴裡巡視，看看大家都在做些什麼。"
+    nvl clear
     jump cave_loop
 label cave_loop:
-    if cave_investigation_count >= 6:
+    if cave_investigation_count >= 7:
         jump CH2_4_end
     call screen cave_exploration_screen
     jump cave_loop
@@ -521,14 +508,19 @@ label click_fabre:
     "「把這個吃下去，這能加快我們身體適應高山低氧的環境。」"
     nvl clear
     jump cave_loop
-label click_ogin_burgin:
-    if not checked_ogin_burgin:
+label click_ogin:
+    if not checked_ogin:
         $ checked_ogin_burgin = True
         $ cave_investigation_count += 1
-    
     "奧金正用敏銳的目光靜靜觀察著洞穴裡的每一個成員。"
     "他手裡緊緊抱著相機，雖然無法拍照，但他似乎在腦海中記錄著這一切。"
-    "布爾金則在一旁閉目養神。"
+    nvl clear
+    jump cave_loop
+label click_burgin:
+    if not checked_burgin:
+        $ checked_burgin = True
+        $ cave_investigation_count += 1
+    "平常總是很有活力的布爾金靜靜地在一旁閉目養神。"
     nvl clear
     jump cave_loop
 label click_voronin_raza:
@@ -550,7 +542,7 @@ label click_heat:
     "溫暖的火焰讓我感到非常溫暖，"
     "但同時燃燒的火焰也散發著刺鼻的氣味。"
     "所以我____"
-    menu:
+    menu(screen="cave_choice"):
         "遠離卡式爐":
             "我移動到離卡式爐較遠的角落。"
         "推倒卡式爐" if persistent.unlocked_ch3_5 or persistent.unlocked_ch3_BE5:
@@ -558,8 +550,9 @@ label click_heat:
             jump CH2_BE2
     jump cave_loop
 label CH2_4_end:
-    nvl_narrator "就在這時，洞外突然傳來微弱的動靜。"
     nvl clear
+    "......"
+    "好像逛得差不多了，我鑽進主人的懷裡休息。"
     jump CH2_5
 label CH2_5:    #救援
     $ persistent.unlocked_ch2_5 = True
@@ -1134,61 +1127,26 @@ label CH3_GE2:  #求救
     nvl_narrator "(END)"
     return
 
-
-
-
 # 密碼鎖錯誤次數計數器
 default lock_errors = 0
-
-# 用來記錄這個造句環節中，所有產生的歷史文本（改用這個控制）
-default puzzle_text_history = [
-    "【系統提示】：請透過點擊詞庫中的詞彙組成一個完整的句子，進行探索。"
-]
-
-# 添加文字
-#init python:
-#    def add_puzzle_text(text):
-#        global puzzle_text_history
-#        puzzle_text_history.append(text)
-# 宣告狀態變數
-
+# 記錄這個造句環節中，所有產生的歷史文本
 default puzzle_history = [{"text":None, "img": None}]
 default current_puzzle_text = "【系統提示】：請透過點擊詞庫中的詞彙組成一個完整的句子，進行探索。"
 default current_puzzle_img = None
 default puzzle_is_typing = False
-
-init python:
-
-
-    def add_puzzle_text(text, img=None):
-        global puzzle_history, current_puzzle_text, current_puzzle_img, puzzle_is_typing
-        
-        # 1. 如果有上一句話，把「文字」跟「圖片」一起打包存入歷史紀錄
-        if current_puzzle_text != "":
-            puzzle_history.append({"text": current_puzzle_text, "img": current_puzzle_img})
-            
-        # 2. 設定新的句子與圖片，並開啟打字狀態
-        current_puzzle_text = text
-        current_puzzle_img = img
-        puzzle_is_typing = True
-        
-        # 3. 播放打字音
-        renpy.music.play("audio/clicks.mp3", channel="sound", loop=True)
-        
-        # 4. 強制刷新畫面以啟動打字效果
-        renpy.restart_interaction()
-
+# 木屋探索
 label start_puzzle_game:
-    # 1. 遊戲開始，直接 show screen 
     show screen sentence_puzzle_game
     $ unlocked_subjects = {"我"}
     $ unlocked_verbs = {"走向"}
     $ unlocked_nouns = set()      # 【關鍵】空集合必須用 set()，千萬不能用 {}
     $ unlocked_places = {"大廳"}
-    $ current_place = "大廳"
-    
-# --- 核心控制環節 ---
-label puzzle_main_loop: #TODO 圖片待加入
+    $ current_place = "大廳"  
+    $ puzzle_history = [{"text":None, "img": None}]
+    $ current_puzzle_text = "【系統提示】：請透過點擊詞庫中的詞彙組成一個完整的句子，進行探索。"
+    $ current_puzzle_img = None
+    $ lock_errors = 0
+label puzzle_main_loop: 
     
     # 2. 呼叫畫面，等待玩家點擊右下角的「執行」
     call screen sentence_puzzle_game
@@ -1197,8 +1155,8 @@ label puzzle_main_loop: #TODO 圖片待加入
     $ s = current_subject
     $ v = current_verb
     $ n = current_noun
-    $ current_verb = None
-    $ current_noun = None
+    #$ current_verb = None
+    #$ current_noun = None
 
 
     # ==================== 【移動位置的造句】 ====================
@@ -1244,7 +1202,7 @@ label puzzle_main_loop: #TODO 圖片待加入
         jump CH2_3
 
     # ==================== 【在大廳的造句】 ====================
-    elif v == "觀察" and n == "大廳":
+    elif (v == "觀察" or v == "聞") and n == "大廳":
         if(current_place=="大廳"):
             $ add_puzzle_text("我環顧四周，大廳裡空無一人，但我能【聞】到角落煤爐傳來的刺鼻汽油味。接著，我注意到前方有一扇緊閉的【大門】，以及兩側走廊上的【六扇房門】。")
             # 詞庫更新
@@ -1278,12 +1236,12 @@ label puzzle_main_loop: #TODO 圖片待加入
         jump puzzle_main_loop
 
     elif v == "觀察" and n == "桌子":
-        $ add_puzzle_text("這張桌子上放了一張隊員們剛來到這裡訓練時拍的合照。", "images/合照_large.png")
+        $ add_puzzle_text("這張桌子上放了一張隊員們剛來到這裡訓練時拍的【合照】。")
         $ unlocked_nouns.add("合照")
         jump puzzle_main_loop
 
     elif v == "觀察" and n == "合照":
-        $ add_puzzle_text("合照上有五名隊員，由左至右依序為沃寧、拉扎、布爾金、法布、列文。")
+        $ add_puzzle_text("合照上有五名隊員，由左至右依序為沃寧、拉扎、布爾金、法布、列文。\n(*註:點擊圖片以放大)", "images/group_photo.png")
         jump puzzle_main_loop
 
     elif v == "聞" and n == "合照":
@@ -1302,7 +1260,7 @@ label puzzle_main_loop: #TODO 圖片待加入
     # 1. 列文房間
     elif v == "觀察" and n == "列文的房間":
         if(current_place=="列文的房間"):
-            $ add_puzzle_text("房間裡掛滿了【登山證書】，有些邊角已經泛黃。桌上放著一張被反覆劃掉的路線地圖，透出一股不容妥協的責任感。角落裡有一個【背包】。")
+            $ add_puzzle_text("房間裡掛滿了【登山證書】，有些邊角已經泛黃。桌上放著一張被反覆劃掉的路線地圖，透出一股不容妥協的責任感。角落裡則有一個半開的【背包】。")
             $ unlocked_nouns.update(["背包", "登山證書"])
         else:
             $ add_puzzle_text("我需要先【走向】列文的房間才能【觀察】。")
@@ -1317,24 +1275,24 @@ label puzzle_main_loop: #TODO 圖片待加入
         jump puzzle_main_loop
 
     elif v == "觀察" and n == "登山證書":
-        $ add_puzzle_text("牆上有一張登山證書格外顯眼，登上那座山似乎是列文最驕傲的人生成就。", "images/列文_large.png")
+        $ add_puzzle_text("牆上有一張登山證書格外顯眼，登上那座山似乎是列文最驕傲的人生成就。", "images/levin.png")
         jump puzzle_main_loop
 
     # 2. 法布房間
     elif v == "觀察" and n == "法布的房間":
         if(current_place=="法布的房間"):
-            $ add_puzzle_text("房間的牆上貼了一張人體的圖，還有密密麻麻的標記。書桌上則擺滿了醫療用品，還有一本寫到一半的實驗記錄。地上散落著用來取暖的卡式爐燃料——固體酒精，旁邊還有一袋【白色粉末】。")
+            $ add_puzzle_text("房間的牆上貼了一張人體的圖，還有密密麻麻的標記。書桌上則擺滿了醫療用品，還有一本寫到一半的【實驗記錄】。地上散落著用來取暖的卡式爐燃料——固體酒精，旁邊還有一袋【白色粉末】。")
             $ unlocked_nouns.update(["白色粉末", "實驗記錄"])
         else:
             $ add_puzzle_text("我需要先【走向】法布的房間才能【觀察】。")
         jump puzzle_main_loop
 
-    elif (v == "聞" or v == "觀察") and n == "白色粉末":
-        $ add_puzzle_text("我湊上前嗅了嗅，袋子標籤寫這是一種叫做「立德粉」的物質，沒有特別的味道。")
+    elif (v == "觀察") and n == "白色粉末":
+        $ add_puzzle_text("袋子標籤寫這是一種叫做「立德粉」的物質，似乎可以調節酒精的燃燒。")
         jump puzzle_main_loop
 
     elif v == "觀察" and n == "實驗記錄":
-        $ add_puzzle_text("這份實驗紀錄似乎是在試驗一種能更快適應高山的新種特效藥，上面寫了各成員的用藥量及一些身體數據。", "images/法布_large.png")
+        $ add_puzzle_text("這份實驗紀錄似乎是在試驗一種能更快適應高山的新種特效藥，上面寫了各成員的用藥量及一些身體數據。", "images/fabre.png")
         jump puzzle_main_loop
 
     # 3. 奧金房間
@@ -1347,7 +1305,7 @@ label puzzle_main_loop: #TODO 圖片待加入
         jump puzzle_main_loop
 
     elif v == "觀察" and n == "相框":
-        $ add_puzzle_text("相框裡面是一張奧金和家人的全家福照。...照片角落的符號是甚麼?", "images/奧金_large.png")
+        $ add_puzzle_text("相框裡面是一張奧金和家人的全家福照。...照片角落的符號是甚麼?", "images/ogin.png")
         jump puzzle_main_loop
 
     # 4. 布爾金房間
@@ -1360,7 +1318,7 @@ label puzzle_main_loop: #TODO 圖片待加入
         jump puzzle_main_loop
 
     elif v == "觀察" and n == "健身器材":
-        $ add_puzzle_text("健身器材上透露著使用痕跡，看得出來經常使用。", "images/布爾金_large.png")
+        $ add_puzzle_text("健身器材上透露著使用痕跡，看得出來經常使用。", "images/burgin.png")
         jump puzzle_main_loop
 
     # 5. 拉扎房間
@@ -1373,7 +1331,7 @@ label puzzle_main_loop: #TODO 圖片待加入
         jump puzzle_main_loop
 
     elif v == "觀察" and n == "防水塗料":
-        $ add_puzzle_text("瓶身上的奇怪符號好像在哪裡看過。", "images/拉扎_large.png")
+        $ add_puzzle_text("瓶身上的奇怪符號好像在哪裡看過。", "images/raza.png")
         jump puzzle_main_loop
 
     # 6. 沃寧房間
@@ -1385,27 +1343,27 @@ label puzzle_main_loop: #TODO 圖片待加入
             $ add_puzzle_text("我需要先【走向】沃寧的房間才能【觀察】。")
         jump puzzle_main_loop
 
-    elif v == "觀察" and n == "羽絨服":
-        $ add_puzzle_text("我輕輕蹭了一下沃寧的羽絨服，有張標籤掉到了地上。", "images/沃寧_large.png")
+    elif (v == "走向" or v == "觀察")  and n == "羽絨服":
+        $ add_puzzle_text("我輕輕蹭了一下沃寧的羽絨服，有張標籤掉到了地上。", "images/voronin.png")
         jump puzzle_main_loop
 
-    elif v == "觀察" and n == "生存裝備":
-        $ add_puzzle_text("我靠近生存裝備，都是一些過夜的裝備像是帳篷、睡袋、睡墊，因為他們這次只是單日的適應性訓練，所以沒有帶上這些裝備。", "images/沃寧_large.png")
+    elif (v == "走向" or v == "觀察")  and n == "生存裝備":
+        $ add_puzzle_text("我靠近生存裝備，都是一些過夜的裝備像是帳篷、睡袋、睡墊，因為他們這次只是單日的適應性訓練，所以沒有帶上這些裝備。")
         jump puzzle_main_loop
 
     # ==================== 【萬用錯誤防呆】 ====================
     elif v == "聞":
         $ add_puzzle_text("我用鼻子嗅了嗅，什麼味道也沒有。")
         jump puzzle_main_loop
+    elif v == "走向":
+        $ add_puzzle_text(("現在我在"+n+"面前了。"))
+        jump puzzle_main_loop
     else:
         $ add_puzzle_text("什麼事情也沒有發生……看來這沒有意義。")
         jump puzzle_main_loop
-
 label password_unlock_logic:
-    #$ user_input = renpy.input("請輸入密碼：")
     $ user_input = renpy.call_screen("popup_input", prompt="請輸入密碼：")
     $ is_correct = my_lib.check_password(user_input.encode('utf-8'))
-
     if is_correct == 1:
         $ add_puzzle_text("(寵物門已開啟)\n我成功解開了密碼鎖，我把頭探出去，外面是寒冷的【雪地】。\n(*註:走向雪地將結束此探索章節)")
         $ unlocked_places.add("雪地")
