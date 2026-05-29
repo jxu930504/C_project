@@ -1418,10 +1418,19 @@ screen cave_exploration_screen():
 ## 木屋造句畫面 ########################################################################
 # 初始解鎖的詞庫
 default unlocked_subjects = {"我"}
-default unlocked_verbs = {"觀察", "走向"}
-default unlocked_nouns = {"大廳"}
+default unlocked_verbs = {"走向"}
+default unlocked_nouns = set()
 default unlocked_places = {"大廳"}
 default current_place = "大廳"
+default place_items_map = {
+    "大廳": {"大門", "密碼鎖", "合照", "桌子", "六扇房門"},
+    "列文的房間": {"背包", "登山證書"},
+    "法布的房間": {"白色粉末", "實驗記錄"},
+    "布爾金的房間": {"健身器材"},
+    "奧金的房間": {"相框"},
+    "拉扎的房間": {"防水塗料"},
+    "沃寧的房間": {"生存裝備", "羽絨服"}
+}
 # 玩家目前選中的詞
 default current_subject = "我"
 default current_verb = None
@@ -1554,17 +1563,36 @@ screen sentence_puzzle_game():
                         elif right_panel_mode == "place":
                             for p in sorted(list(unlocked_places)):
                                 textbutton p:
-                                    action SetVariable("current_place", p)
+                                    action SetVariable("current_noun", p)
+                                    #$ current_place = $ current_noun
                                     # 重點在這裡：如果 p 等於當前地點，文字就變色(例如亮橘色)，否則維持黑色
                                     text_color ("#e69138" if p == current_place else "#000000")
                                     text_bold (True if p == current_place else False) # 當前地點額外加粗
                                     text_size gui.nvl_text_size
-                        else:
-                            for n in sorted(list(unlocked_nouns)):
+                        elif right_panel_mode == "noun":
+                            
+                            # 1. 取得「當前地點」擁有的所有物品 (如果該地點沒有設定，預設給空集合)
+                            $ current_place_items = place_items_map.get(current_place, set())
+                            
+                            # 2. 取交集 (&)：找出「已解鎖」且「在這個地點」的物品
+                            $ valid_nouns = current_place_items.intersection(unlocked_nouns)
+                            
+                            # 3. 取差集 (-)：找出「已解鎖」但「不在這個地點」的物品
+                            $ disabled_nouns = unlocked_nouns - valid_nouns
+                            
+                            # 4. 優先顯示：當前地點的可用物品 (正常顏色，可點擊)
+                            for n in sorted(list(valid_nouns)):
                                 textbutton n:
                                     action SetVariable("current_noun", n)
                                     text_color "#000000"
-                                    text_size gui.nvl_text_size
+                                    text_size (max(gui.nvl_text_size, 30))
+                                    
+                            # 5. 後置顯示：其他地點的物品 (灰色，不可點擊)
+                            for n in sorted(list(disabled_nouns)):
+                                textbutton n:
+                                    action None            # 【關鍵】設定為 None 就會變成不可點擊的純文字狀態
+                                    text_color "#b3b3b3"   # 給予淺灰色，暗示玩家當前空間沒有這個東西
+                                    text_size (max(gui.nvl_text_size, 30))
         vbar value YScrollValue("words_vp"):
             xpos 390#(1735, 140)
             ypos 5
@@ -1644,4 +1672,35 @@ screen image_popup_viewer(img_path):
     # 在畫面正中央顯示完整圖片
     add img_path:
         align (0.5, 0.5)
+# =================【 輸入視窗 】=================
+screen popup_input(prompt):
+    # 設定 modal 為 True，確保玩家在輸入完成前不能點擊背景的其他東西
+    modal True 
+    
+    # (可選) 添加一個半透明的黑色背景，讓彈出視窗更突出
+    add "#00000080" 
+
+    # 建立彈出視窗的框架
+    frame:
+        xalign 0.5
+        yalign 0.5
+        xysize (400, 150) # 可以根據你的需求調整視窗大小
+        padding (20, 20)
+
+        vbox:
+            xalign 0.5
+            yalign 0.5
+            spacing 20
+
+            # 顯示提示文字 (例如："請輸入密碼：")
+            text prompt:
+                xalign 0.5
+                text_align 0.5
+
+            # 這是實際處理輸入的元件
+            input:
+                id "input"
+                xalign 0.5
+                length 20 # (可選) 限制輸入的最大字數
+                # color "#ffffff" # (可選) 設定輸入文字的顏色
 

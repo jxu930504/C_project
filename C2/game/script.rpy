@@ -1181,7 +1181,11 @@ init python:
 label start_puzzle_game:
     # 1. 遊戲開始，直接 show screen 
     show screen sentence_puzzle_game
-    $ quick_menu = True
+    $ unlocked_subjects = {"我"}
+    $ unlocked_verbs = {"走向"}
+    $ unlocked_nouns = set()      # 【關鍵】空集合必須用 set()，千萬不能用 {}
+    $ unlocked_places = {"大廳"}
+    $ current_place = "大廳"
     
 # --- 核心控制環節 ---
 label puzzle_main_loop: #TODO 圖片待加入
@@ -1197,167 +1201,218 @@ label puzzle_main_loop: #TODO 圖片待加入
     $ current_noun = None
 
 
-    # ==================== 【初始 / 移動位置的造句】 ====================
-    if s == "我" and (v == "觀察" or v == "走向") and n == "大廳":
-        $ add_puzzle_text("我往大廳走去，現在我在大廳中央的桌子上。我環顧四周，現在隊員們都已經出發，大廳裡空無一人，只剩下角落煤爐傳來的刺鼻汽油味。")
-        $ add_puzzle_text("我注意到前方有一扇緊閉的【大門】，以及兩側走廊上的【六扇房門】。")
-        # 🌟 詞庫更新
-        $ unlocked_nouns.update(["大門", "六扇房門", "桌子"])
-        $ unlocked_verbs.add("聞")
+    # ==================== 【移動位置的造句】 ====================
+    if v == "走向" and n == "大廳":
+        $ add_puzzle_text("我往大廳走去，現在我在大廳中央的【桌子】上。現在隊員們都已經出發，也許我可以四處【觀察】這棟木屋。")
+        # 詞庫更新
+        $ unlocked_verbs.add("觀察")
+        $ unlocked_nouns.add("桌子")
+        $ current_place = "大廳"
         jump puzzle_main_loop
 
-    elif s == "我" and (v == "走向" or v == "聞") and n == "列文的房間":
+    elif (v == "走向" or v == "聞") and n == "列文的房間":
         $ add_puzzle_text("我走向列文的房間，這個房間飄出風曬過的肉味。")
+        $ current_place = "列文的房間"
         jump puzzle_main_loop
 
-    elif s == "我" and (v == "走向" or v == "聞") and n == "法布的房間":
+    elif (v == "走向" or v == "聞") and n == "法布的房間":
         $ add_puzzle_text("我走向法布的房間，這個房間飄出清香的草藥味。")
+        $ current_place = "法布的房間"
         jump puzzle_main_loop
 
-    elif s == "我" and (v == "走向" or v == "聞") and n == "布爾金的房間":
+    elif (v == "走向" or v == "聞") and n == "布爾金的房間":
         $ add_puzzle_text("我走向布爾金的房間，這個房間飄出淡淡的麥香味。")
+        $ current_place = "布爾金的房間"
         jump puzzle_main_loop
 
-    elif s == "我" and (v == "走向" or v == "聞") and n == "奧金的房間":
+    elif (v == "走向" or v == "聞") and n == "奧金的房間":
         $ add_puzzle_text("我走向奧金的房間，這個房間飄出濃濃的奶香味。")
+        $ current_place = "奧金的房間"
         jump puzzle_main_loop
 
-    elif s == "我" and (v == "走向" or v == "聞") and n == "沃寧的房間":
+    elif (v == "走向" or v == "聞") and n == "沃寧的房間":
         $ add_puzzle_text("我走向沃寧的房間，這個房間飄出濃烈的煙燻味。")
+        $ current_place = "沃寧的房間"
         jump puzzle_main_loop
 
-    elif s == "我" and (v == "走向" or v == "聞") and n == "拉扎的房間":
+    elif (v == "走向" or v == "聞") and n == "拉扎的房間":
         $ add_puzzle_text("我走向拉扎的房間，這個房間飄出溫熱的茶香味。")
+        $ current_place = "拉扎的房間"
         jump puzzle_main_loop
+
+    elif v == "走向" and n == "雪地":
+        jump CH2_3
 
     # ==================== 【在大廳的造句】 ====================
-    elif s == "我" and (v == "走向" or v == "觀察") and n == "大門":
-        $ add_puzzle_text("我跑到大門前，用爪子推了推，門紋絲不動。門把上掛著一個沉重的【密碼鎖】，看來解開密碼才能把門打開。")
-        $ unlocked_nouns.add("密碼鎖")
+    elif v == "觀察" and n == "大廳":
+        if(current_place=="大廳"):
+            $ add_puzzle_text("我環顧四周，大廳裡空無一人，但我能【聞】到角落煤爐傳來的刺鼻汽油味。接著，我注意到前方有一扇緊閉的【大門】，以及兩側走廊上的【六扇房門】。")
+            # 詞庫更新
+            $ unlocked_nouns.update(["大門", "六扇房門"])
+            $ unlocked_verbs.add("聞")
+        else:
+            $ add_puzzle_text("我需要先【走向】大廳才能【觀察】。")
         jump puzzle_main_loop
 
-    elif s == "我" and v == "觀察" and n == "密碼鎖":
-        $ add_puzzle_text("這個密碼鎖需要五位數的密碼才能解開。")
+    elif v == "走向" and n == "桌子":
+        $ add_puzzle_text("我走向大廳的桌子，現在我在桌子的正中央。")
+        jump puzzle_main_loop
+
+    elif (v == "走向" or v == "觀察") and n == "大門":
+        $ add_puzzle_text("我跑到大門前，用爪子推了推，門紋絲不動，他已經上鎖且靠我的力量無法打開。而我平常出入的寵物門上掛著一個【密碼鎖】，看來需要【解開】密碼鎖才能把門打開。")#【】
+        $ unlocked_nouns.add("密碼鎖")
         $ unlocked_verbs.add("解開")
         jump puzzle_main_loop
 
-    elif s == "我" and v == "觀察" and n == "六扇房門":
-        $ add_puzzle_text("走廊上有六個房間，房門上分別寫了隊員的名字: 列文、法布、奧金、沃寧、拉扎和布爾金。")
-        $ unlocked_nouns.update(["列文的房間", "法布的房間", "奧金的房間", "布爾金的房間", "沃寧的房間", "拉扎的房間"])
+    elif v == "觀察" and n == "密碼鎖":
+        $ add_puzzle_text("我仔細觀察著個密碼鎖，發現他需要五位數的密碼。")#【】
         jump puzzle_main_loop
 
-    elif s == "我" and v == "觀察" and n == "桌子":
+    elif v == "觀察" and n == "六扇房門":
+        $ add_puzzle_text("走廊上有六個房間，房門上分別寫了隊員的名字: 列文、法布、奧金、沃寧、拉扎和布爾金。")
+        $ unlocked_places.update(["列文的房間", "法布的房間", "奧金的房間", "布爾金的房間", "沃寧的房間", "拉扎的房間"])
+        jump puzzle_main_loop
+    
+    elif v == "聞" and n == "六扇房門":
+        $ add_puzzle_text("走廊上有六個房間，分別飄出不同食物的氣味，都是他們平常最喜歡的食物。")
+        jump puzzle_main_loop
+
+    elif v == "觀察" and n == "桌子":
         $ add_puzzle_text("這張桌子上放了一張隊員們剛來到這裡訓練時拍的合照。", "images/合照_large.png")
         $ unlocked_nouns.add("合照")
         jump puzzle_main_loop
 
-    elif s == "我" and v == "觀察" and n == "合照":
-        $ add_puzzle_text("合照上左至右依序為沃寧、拉扎、布爾金、法布、列文。")
+    elif v == "觀察" and n == "合照":
+        $ add_puzzle_text("合照上有五名隊員，由左至右依序為沃寧、拉扎、布爾金、法布、列文。")
         jump puzzle_main_loop
 
-    elif s == "我" and v == "聞" and n == "合照":
-        $ add_puzzle_text("合照上有淡淡的奶香味，應該是奧金負責拍攝的。")
+    elif v == "聞" and n == "合照":
+        $ add_puzzle_text("合照上有淡淡的奶香味，應該是奧金負責拍攝和沖洗的。")
         jump puzzle_main_loop
 
-    elif s == "我" and v == "解開" and n == "密碼鎖":
+    elif v == "解開" and n == "密碼鎖":
         # 觸發輸入密碼框邏輯
         jump password_unlock_logic
 
-    elif s == "我" and v == "走向" and n == "雪地":
+    elif v == "走向" and n == "雪地":
         $ add_puzzle_text("我深吸一口氣，朝著漫天風雪的外部狂奔而去……")
         jump CH2_3
 
     # ==================== 【各房間內部造句】 ====================
     # 1. 列文房間
-    elif s == "我" and v == "觀察" and n == "列文的房間":
-        $ add_puzzle_text("房間裡掛滿了登山證書，有些邊角已經泛黃。桌上放著一張被反覆劃掉的路線地圖，透出一股不容妥協的責任感。角落裡有一個【背包】。")
-        $ unlocked_nouns.update(["背包", "證書"])
+    elif v == "觀察" and n == "列文的房間":
+        if(current_place=="列文的房間"):
+            $ add_puzzle_text("房間裡掛滿了【登山證書】，有些邊角已經泛黃。桌上放著一張被反覆劃掉的路線地圖，透出一股不容妥協的責任感。角落裡有一個【背包】。")
+            $ unlocked_nouns.update(["背包", "登山證書"])
+        else:
+            $ add_puzzle_text("我需要先【走向】列文的房間才能【觀察】。")
         jump puzzle_main_loop
 
-    elif s == "我" and v == "觀察" and n == "背包":
+    elif v == "觀察" and n == "背包":
         $ add_puzzle_text("我用爪子用力扒開背包，裡面發出沉悶的金屬碰撞聲。我記得在出隊前這個背包還是滿的，但現在裡面剩下幾隻冰鎬，這是只有攀登冰崖時才會用到的裝備。")
         jump puzzle_main_loop
 
-    elif s == "我" and v == "聞" and n == "背包":
-        $ add_puzzle_text("我聞了聞這個沉重的背包，什麼味道也沒有，看來應該沒有食物。")
+    elif v == "聞" and n == "背包":
+        $ add_puzzle_text("我聞了聞這個背包，什麼味道也沒有，看來應該沒有食物。")
         jump puzzle_main_loop
 
-    elif s == "我" and v == "觀察" and n == "證書":
-        $ add_puzzle_text("牆上有一張證書格外顯眼，那是一張登頂的證書。", "images/列文_large.png")
-        #$ add_puzzle_text("img:列文_large.png")
-        
+    elif v == "觀察" and n == "登山證書":
+        $ add_puzzle_text("牆上有一張登山證書格外顯眼，登上那座山似乎是列文最驕傲的人生成就。", "images/列文_large.png")
         jump puzzle_main_loop
 
     # 2. 法布房間
-    elif s == "我" and v == "觀察" and n == "法布的房間":
-        $ add_puzzle_text("房間的牆上貼了一張人體的圖，還有密密麻麻的標記。書桌上則擺滿了醫療用品，還有一本寫到一半的實驗記錄。地上散落著用來取暖的卡式爐燃料——固體酒精，旁邊還有一些用來調節燃燒的【白色粉末】。")
-        $ unlocked_nouns.update(["白色粉末", "實驗記錄"])
+    elif v == "觀察" and n == "法布的房間":
+        if(current_place=="法布的房間"):
+            $ add_puzzle_text("房間的牆上貼了一張人體的圖，還有密密麻麻的標記。書桌上則擺滿了醫療用品，還有一本寫到一半的實驗記錄。地上散落著用來取暖的卡式爐燃料——固體酒精，旁邊還有一袋【白色粉末】。")
+            $ unlocked_nouns.update(["白色粉末", "實驗記錄"])
+        else:
+            $ add_puzzle_text("我需要先【走向】法布的房間才能【觀察】。")
         jump puzzle_main_loop
 
-    elif s == "我" and (v == "聞" or v == "觀察") and n == "白色粉末":
-        $ add_puzzle_text("我湊上前嗅了嗅，這是一種叫做「立德粉」的物質，沒有特別的味道。")
+    elif (v == "聞" or v == "觀察") and n == "白色粉末":
+        $ add_puzzle_text("我湊上前嗅了嗅，袋子標籤寫這是一種叫做「立德粉」的物質，沒有特別的味道。")
         jump puzzle_main_loop
 
-    elif s == "我" and v == "觀察" and n == "實驗記錄":
-        $ add_puzzle_text("這份實驗紀錄似乎是在試驗一種能更快適應高山的新種特效藥，上面寫了個成員的用藥量及一些身體數據。", "images/法布_large.png")
+    elif v == "觀察" and n == "實驗記錄":
+        $ add_puzzle_text("這份實驗紀錄似乎是在試驗一種能更快適應高山的新種特效藥，上面寫了各成員的用藥量及一些身體數據。", "images/法布_large.png")
         jump puzzle_main_loop
 
     # 3. 奧金房間
-    elif s == "我" and v == "觀察" and n == "奧金的房間":
-        $ add_puzzle_text("房間裡掛滿了攝影師奧金拍攝的照片，桌上擺著相機和鏡頭，還有一張用相框小心保存的相片。")
-        $ unlocked_nouns.add("相片")
+    elif v == "觀察" and n == "奧金的房間":
+        if(current_place=="奧金的房間"):
+            $ add_puzzle_text("房間裡掛滿了攝影師奧金拍攝的照片，桌上擺著相機和鏡頭，還有一張用【相框】小心保存的相片。")
+            $ unlocked_nouns.add("相框")
+        else:
+            $ add_puzzle_text("我需要先【走向】奧金的房間才能【觀察】。")
         jump puzzle_main_loop
 
-    elif s == "我" and v == "觀察" and n == "相片":
-        $ add_puzzle_text("這是一張奧金和家人的合照。")
-        $ add_puzzle_text("...照片角落的符號是甚麼?", "images/奧金_large.png")
+    elif v == "觀察" and n == "相框":
+        $ add_puzzle_text("相框裡面是一張奧金和家人的全家福照。...照片角落的符號是甚麼?", "images/奧金_large.png")
         jump puzzle_main_loop
 
     # 4. 布爾金房間
-    elif s == "我" and v == "觀察" and n == "布爾金的房間":
-        $ add_puzzle_text("這裡是所有房間裡最凌亂的，背包隨意丟在角落，衣服堆在椅子上，地上散落著許多【健身器材】。")
-        $ unlocked_nouns.add("健身器材")
+    elif v == "觀察" and n == "布爾金的房間":
+        if(current_place=="布爾金的房間"):
+            $ add_puzzle_text("這裡是所有房間裡最凌亂的，背包隨意丟在角落，衣服堆在椅子上，地上散落著許多【健身器材】。")
+            $ unlocked_nouns.add("健身器材")
+        else:
+            $ add_puzzle_text("我需要先【走向】布爾金的房間才能【觀察】。")
         jump puzzle_main_loop
 
-    elif s == "我" and v == "觀察" and n == "健身器材":
+    elif v == "觀察" and n == "健身器材":
         $ add_puzzle_text("健身器材上透露著使用痕跡，看得出來經常使用。", "images/布爾金_large.png")
         jump puzzle_main_loop
 
     # 5. 拉扎房間
-    elif s == "我" and v == "觀察" and n == "拉扎的房間":
-        $ add_puzzle_text("這個房間沒有太多花俏的裝飾，桌角放著幾卷備用的相機底片，桌上放著用過的【防水塗料】。")
-        $ unlocked_nouns.add("防水塗料")
+    elif v == "觀察" and n == "拉扎的房間":
+        if(current_place=="拉扎的房間"):
+            $ add_puzzle_text("這個房間沒有太多花俏的裝飾，桌角放著幾卷備用的相機底片，桌上放著一罐用過的【防水塗料】。")
+            $ unlocked_nouns.add("防水塗料")
+        else:
+            $ add_puzzle_text("我需要先【走向】拉扎的房間才能【觀察】。")
         jump puzzle_main_loop
 
-    elif s == "我" and v == "觀察" and n == "防水塗料":
+    elif v == "觀察" and n == "防水塗料":
         $ add_puzzle_text("瓶身上的奇怪符號好像在哪裡看過。", "images/拉扎_large.png")
         jump puzzle_main_loop
 
     # 6. 沃寧房間
-    elif s == "我" and v == "觀察" and n == "沃寧的房間":
-        $ add_puzzle_text("這裡沒有任何多餘的物品，只放著極度精簡且實用的生存裝備以及禦寒的【羽絨服】。")
-        $ unlocked_nouns.add("羽絨服")
+    elif v == "觀察" and n == "沃寧的房間":
+        if(current_place=="沃寧的房間"):
+            $ add_puzzle_text("這裡沒有任何多餘的物品，只放著極度精簡且實用的【生存裝備】以及禦寒的【羽絨服】。")
+            $ unlocked_nouns.update(["羽絨服", "生存裝備"])
+        else:
+            $ add_puzzle_text("我需要先【走向】沃寧的房間才能【觀察】。")
         jump puzzle_main_loop
 
-    elif s == "我" and v == "觀察" and n == "羽絨服":
+    elif v == "觀察" and n == "羽絨服":
         $ add_puzzle_text("我輕輕蹭了一下沃寧的羽絨服，有張標籤掉到了地上。", "images/沃寧_large.png")
         jump puzzle_main_loop
 
+    elif v == "觀察" and n == "生存裝備":
+        $ add_puzzle_text("我靠近生存裝備，都是一些過夜的裝備像是帳篷、睡袋、睡墊，因為他們這次只是單日的適應性訓練，所以沒有帶上這些裝備。", "images/沃寧_large.png")
+        jump puzzle_main_loop
+
     # ==================== 【萬用錯誤防呆】 ====================
+    elif v == "聞":
+        $ add_puzzle_text("我用鼻子嗅了嗅，什麼味道也沒有。")
+        jump puzzle_main_loop
     else:
-        $ add_puzzle_text("我試著讓自己做出這樣的舉動，但什麼事情也沒有發生……看來這沒有意義。")
+        $ add_puzzle_text("什麼事情也沒有發生……看來這沒有意義。")
         jump puzzle_main_loop
 
 label password_unlock_logic:
-    $ user_input = renpy.input("請輸入密碼：")
+    #$ user_input = renpy.input("請輸入密碼：")
+    $ user_input = renpy.call_screen("popup_input", prompt="請輸入密碼：")
     $ is_correct = my_lib.check_password(user_input.encode('utf-8'))
+
     if is_correct == 1:
-        "(大門已開啟)"
-        jump CH2_3
+        $ add_puzzle_text("(寵物門已開啟)\n我成功解開了密碼鎖，我把頭探出去，外面是寒冷的【雪地】。\n(*註:走向雪地將結束此探索章節)")
+        $ unlocked_places.add("雪地")
     else:
         $lock_errors+=1
         if(lock_errors>=3):
             jump CH2_BE1
         else:
             $ add_puzzle_text("好像不是這組密碼，完全打不開。")
-            jump puzzle_main_loop
+    jump puzzle_main_loop
