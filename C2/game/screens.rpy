@@ -346,14 +346,14 @@ screen main_menu():
         ground "gui/main_menu_idle.png"
         idle "gui/main_menu_idle.png"
         hover "gui/main_menu_hover.png"
-        hotspot (491, 426, 198, 104) action Start()
-        hotspot (497, 590, 200, 100) action Continue()
-        hotspot (1104, 293, 158, 94) action ShowMenu("load")
-        hotspot (1106, 399, 154, 94) action ShowMenu("preferences")
-        hotspot (1108, 507, 144, 85) action ShowMenu("about")
-        hotspot (1106, 610, 154, 90) action ShowMenu("help")
-        hotspot (1104, 714, 160, 94) action Quit(confirm=False)
-        hotspot (1672, 990, 230, 65) action Confirm( "警告：這將會清除所有的解鎖進度與紀錄！\n確定要繼續嗎？", yes=Function(reset_all_progress), no=NullAction() )
+        hotspot (725, 187, 241, 141) action Start()
+        hotspot (984, 189, 230, 137) action Continue()
+        hotspot (452, 358, 205, 128) action ShowMenu("load")
+        hotspot (669, 374, 192, 112) action ShowMenu("preferences")
+        hotspot (873, 374, 191, 108) action ShowMenu("about")
+        hotspot (1084, 372, 188, 116) action ShowMenu("help")
+        hotspot (1290, 370, 187, 112) action Quit(confirm=False)
+        hotspot (1565, 446, 266, 99) action Confirm( "警告：這將會清除所有的解鎖進度與紀錄！\n確定要繼續嗎？", yes=Function(reset_all_progress), no=NullAction() )
 
 
 
@@ -543,22 +543,27 @@ screen about():
     ## 此 use 語句包含此畫面中的 game_menu 畫面。然後，vbox 子項將包含在
     ## game_menu 畫面內的視口內
     # TODO 關於文字
-    """
-    use game_menu(_("關於"), scroll="viewport"):
+    vbox:
+        # 請依照你的背景圖 (About_idle.PNG) 的排版，調整以下 xpos 與 ypos 的數值
+        xpos 280 #(280, 127)
+        ypos 127 
+        spacing 18 # 設定每行文字的間距
 
-        style_prefix "about"
+        text "程式設計（二）期末專題" size 56 bold True color "#000000"
+        text "- 遊戲製作：許靖妤" size 48 color "#000000"
+        text "- 聲明：本遊戲劇情受真實事件啟發並進行改編，部分情節與\n設定為虛構創作，如有雷同，純屬巧合。" size 48 color "#000000"
+        
+        # 較長的文字可以使用 \n 來換行，避免超出畫面邊界
+        text "- 劇情靈感：YouTuber「自說自話的總裁」——\n{a=https://www.youtube.com/watch?si=wh2G8oP4qagpJELU&v=zeluE32TSoc}《1990年，一支蘇聯小隊消失，找到時，6人變成了8人？...》{/a}" size 48 color "#000000"
+        
+        text "- 圖片素材：Gemini AI 生成" size 48 color "#000000"
 
-        vbox:
+        null height 30 # 與下方引擎資訊保留一點空白距離
 
-            label "[config.name!t]"
-            text _("版本 [config.version!t]\n")
-
-            ## gui.about 通常在 options.rpy 中設定。
-            if gui.about:
-                text "[gui.about!t]\n"
-
-            text _("使用 {a=https://www.renpy.org/}Ren'Py{/a} [renpy.version_only] 製作。 \n\n[renpy.license!t]")
-    """
+        # 保留 Ren'Py 預設的引擎與版本資訊 (如果你不需要可以將這兩行刪除)
+        text _("版本 [config.version!t]") size 40 color "#000000"
+        text _("使用 {a=https://www.renpy.org/}Ren'Py{/a} [renpy.version_only] 製作。") size 40 color "#000000"
+    
 
 style about_label is gui_label
 style about_label_text is gui_label_text
