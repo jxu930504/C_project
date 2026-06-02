@@ -20,14 +20,18 @@ if __name__ == "__main__":
     input_file = "cave_bg.png" 
     output_file = "cave_bg.png"
     
-    scale_pixel_art("奧金_large.png" , "奧金_large.png",1080,1080)
+    scale_pixel_art("avatar_player_cat.png" , "D:\\大四\\程設二\\專題\\C2\\game\\gui\\avatar_player_cat.png",510,565)
+    scale_pixel_art("avatar_player_dog.png" , "D:\\大四\\程設二\\專題\\C2\\game\\gui\\avatar_player_dog.png",510,565)
     """
-    scale_pixel_art("布爾金.png" , "布爾金_large.png",1080,1080)
-    scale_pixel_art("列文.png" , "列文_large.png",1080,1080)
-    scale_pixel_art("合照改改.png" , "合照_large.png",1080,1014)
-    scale_pixel_art("沃寧.png" , "沃寧_large.png",1080,1080)
-    scale_pixel_art("法布.png" , "法布_large.png",1080,1080)
-    scale_pixel_art("拉扎.png" , "拉扎_large.png",1080,1080)
+    scale_pixel_art("avatar_aojin.png" , "D:\\大四\\程設二\\專題\\C2\\game\\gui\\avatar_aojin.png",510,565)
+    scale_pixel_art("avatar_buerjin.png" , "D:\\大四\\程設二\\專題\\C2\\game\\gui\\avatar_buerjin.png",510,565)
+    scale_pixel_art("avatar_laza.png" , "D:\\大四\\程設二\\專題\\C2\\game\\gui\\avatar_laza.png",510,565)
+    scale_pixel_art("avatar_woning.png" , "D:\\大四\\程設二\\專題\\C2\\game\\gui\\avatar_woning.png",510,565)
+    scale_pixel_art("unlock_fabu.png" , "D:\\大四\\程設二\\專題\\C2\\game\\gui\\unlock_fabu.png",510,565)
+    scale_pixel_art("avatar_levin.png" , "D:\\大四\\程設二\\專題\\C2\\game\\gui\\avatar_levin.png",510,565)
+    scale_pixel_art("avatar_locked.png" , "D:\\大四\\程設二\\專題\\C2\\game\\gui\\avatar_locked.png",510,565)
+    
+    
     
     scale_pixel_art("拉扎.png" , "拉扎_small.png",256,256)
     scale_pixel_art("奧金.png" , "奧金_small.png",256,256)

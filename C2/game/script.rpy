@@ -10,12 +10,25 @@ image typing_cursor:
 
 init python:
     #引入C函式
-    # TODO 重新編譯
+    # TODO Linux待測試
     import ctypes
     import os
+    # 1. 根據作業系統決定副檔名與子資料夾
+    if renpy.windows:
+        lib_ext = ".dll"
+        platform_dir = "win"
+    elif renpy.linux:
+        lib_ext = ".so"
+        platform_dir = "linux"
+    else:
+        lib_ext = None
 
-    dll_path = os.path.join(config.gamedir, "C/password_checker.dll")
+    dll_loaded = False
 
+    if lib_ext:
+        # 建議將不同平台的檔案分開存放，避免檔名衝突（例如都叫 password_checker）
+        # 路徑範例：game/C/win/password_checker.dll
+        dll_path = os.path.join(config.gamedir, "C", f"password_checker{lib_ext}")
     try:
         my_lib = ctypes.CDLL(dll_path)
         
@@ -54,6 +67,7 @@ init python:
         renpy.full_restart()
     # 木屋探索文字
     def add_puzzle_text(text, img=None):
+
         global puzzle_history, current_puzzle_text, current_puzzle_img, puzzle_is_typing
         
         # 1. 如果有上一句話，把「文字」跟「圖片」一起打包存入歷史紀錄
@@ -70,14 +84,80 @@ init python:
         
         # 4. 強制刷新畫面以啟動打字效果
         renpy.restart_interaction()
+    
+    # 預設目前看第 0 個角色（玩家）
+    current_char_index = 0
+    def get_player_avatar():
+        if persistent.pet == "dog":
+            return "gui/avatar_player_dog.png"  # 狗狗頭像的路徑
+        elif persistent.pet == "cat":
+            return "gui/avatar_player_cat.png"  # 貓貓頭像的路徑
+        else:
+            return "gui/avatar_player_dog.png"  # 防呆預設值
+    # 角色資料庫：請自行將 "gui/avatar_player.png" 等替換成你實際的圖片路徑
+    help_characters = [
+        {
+            "name": "玩家",
+            "avatar": "player",
+            "desc": "因為不明原因穿越到一起山難懸案的時空背景並且變成了小貓/小狗，並且在因緣際會下遇到正在培訓的登山隊，成為他們的寵物。訓練期間與主人朝夕相伴，主人出發登山後嘗試透過自己的力量改寫登山隊的命運。",
+            "condition": "persistent.unlock_player"
+        },
+        {
+            "name": "隊長 列文",
+            "avatar": "gui/avatar_levin.png",
+            "desc": "經驗豐富的運動員，登過許多的高山，也是登山隊中最有經驗的成員。其性格穩重，但背負著強烈的集體主義精神與責任感，認為自己有責任把大家全部安全帶下山。",
+            "condition": "persistent.unlock_levin"
+        },
+        {
+            "name": "隊醫 法布",
+            "avatar": "gui/unlock_fabu.png",
+            "desc": "精通醫學，是團隊中技術最強悍、學歷最高的成員。熟知高山的地形與氣候且性格沉穩，能協助隊長判斷。",
+            "condition": "persistent.unlock_player"
+        },
+        {
+            "name": "隊員 沃寧",
+            "avatar": "gui/avatar_woning.png",
+            "desc": "極端務實的生存者，深知登山的風險。在生死關頭，不被集體主義與階級綁架。",
+            "condition": "persistent.unlock_woning"
+        },
+        {
+            "name": "隊員 拉扎",
+            "avatar": "gui/avatar_laza.png",
+            "desc": "做事謹慎、細心且務實，具備極強的現實判斷力及求生本能。",
+            "condition": "persistent.unlock_laza"
+        },
+        {
+            "name": "隊員 布爾金",
+            "avatar": "gui/avatar_buerjin.png",
+            "desc": "性格開朗、樂觀、容易興奮，不拘小節，是團隊中的開心果。",
+            "condition": "persistent.unlock_buerjin"
+        },
+        {
+            "name": "隊員 奧金",
+            "avatar": "gui/avatar_aojin.png",
+            "desc": "性格安靜敏銳，喜歡靜靜地觀察周遭。性格隨和，遇事不會堅持己見而是順從集體。",
+            "condition": "persistent.unlock_aojin"
+        }
+    ]
+    def get_unlocked_characters():
+        unlocked = []
+        for char in help_characters:
+            # eval() 會去抓取當前遊戲中 unlock_fabu 的 True 或 False 狀態
+            if eval(char["condition"]): 
+                unlocked.append(char)
+        return unlocked
 
 
     
         
-
-# 進度條變數 
-default nvl_progress = 0.0      # 當前進度
-default nvl_total_lines = 10    # 預設總行數 (防止錯誤用)
+# 解鎖角色
+default persistent.unlock_player = True
+default persistent.unlock_levin = False
+default persistent.unlock_fabu = False 
+default persistent.unlock_woning = False 
+default persistent.unlock_laza = False
+default persistent.unlock_buerjin = False
+default persistent.unlock_aojin = False 
 # 劇情變數
 default persistent.pet = "dog"
 default persistent.Owner = 1 #1:隊長 2:隊醫 3:沃寧/拉札 4:奧金 5:布爾金
@@ -230,6 +310,7 @@ label CH1_2:    #登山隊
     menu: 
         "風曬過的肉味":
             $ persistent.Owner =1; #1:隊長 2:隊醫 3:沃寧/拉札 4:奧金 5:布爾金
+            $ persistent.unlock_levin = True
             nvl_narrator "(我走到了有風曬過的肉味的門前)"
             nvl_narrator "過了一陣子，門開了。 "
             nvl_narrator "他看了我一眼，沒有說話。 "
@@ -247,6 +328,7 @@ label CH1_2:    #登山隊
             nvl_narrator "最後我在房間裡找了一個地方休息。"
         "清香的草藥味":
             $ persistent.Owner =2; #1:隊長 2:隊醫 3:沃寧/拉札 4:奧金 5:布爾金
+            $ persistent.unlock_fabu = True 
             nvl_narrator "(我走到了有清香的草藥味的門前)"
             nvl_narrator "過了一陣子，門開了。"
             nvl_narrator "他看了我一眼，沒有說話。"
@@ -262,6 +344,7 @@ label CH1_2:    #登山隊
             nvl_narrator "最後我在房間裡找了一個地方休息。"
         "淡淡的麥香味":
             $ persistent.Owner =5; #1:隊長 2:隊醫 3:沃寧/拉札 4:奧金 5:布爾金
+            $ persistent.unlock_buerjin = True            
             nvl_narrator "(我走到了有淡淡的麥香味的門前)"
             nvl_narrator "過了一陣子，門開了。 "
             nvl_narrator "他看了我一眼，沒有說話。 "
@@ -276,6 +359,7 @@ label CH1_2:    #登山隊
             nvl_narrator "最後我在房間裡找了一個地方休息。"
         "濃濃的奶香味":
             $ persistent.Owner =4; #1:隊長 2:隊醫 3:沃寧/拉札 4:奧金 5:布爾金
+            $ persistent.unlock_aojin = True 
             nvl_narrator "(我走到了有濃濃的奶香味的門前)"
             nvl_narrator "過了一陣子，門開了。 "
             nvl_narrator "他看了我一眼，沒有說話。 "
@@ -291,7 +375,8 @@ label CH1_2:    #登山隊
             nvl_narrator "展現出極為敏銳的觀察力。 "
             nvl_narrator "最後我在房間裡找了一個地方休息。"
         "濃烈的煙燻味":
-            $ persistent.Owner =3; #1:隊長 2:隊醫 3:沃寧/拉札 4:奧金 5:布爾金
+            $ persistent.Owner =3; #1:隊長 2:隊醫 3:沃寧/拉札 4:奧金 5:布爾金 
+            $ persistent.unlock_laza = True
             nvl_narrator "(我走到了有濃烈的煙燻味的門前)"
             nvl_narrator "過了一陣子，門開了。 "
             nvl_narrator "他看了我一眼，沒有說話。 "
@@ -307,6 +392,7 @@ label CH1_2:    #登山隊
             nvl_narrator "最後我在房間裡找了一個地方休息。"
         "溫熱的茶香味":
             $ persistent.Owner =3; #1:隊長 2:隊醫 3:沃寧/拉札 4:奧金 5:布爾金
+            $ persistent.unlock_woning = True
             nvl_narrator "(我走到了有溫熱的茶香味的門前)"
             nvl_narrator "過了一陣子，門開了。 "
             nvl_narrator "他看了我一眼，沒有說話。 "

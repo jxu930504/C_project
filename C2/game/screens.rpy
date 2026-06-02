@@ -542,28 +542,53 @@ screen about():
 
     ## 此 use 語句包含此畫面中的 game_menu 畫面。然後，vbox 子項將包含在
     ## game_menu 畫面內的視口內
-    # TODO 關於文字
-    vbox:
-        # 請依照你的背景圖 (About_idle.PNG) 的排版，調整以下 xpos 與 ypos 的數值
-        xpos 280 #(280, 127)
-        ypos 127 
-        spacing 18 # 設定每行文字的間距
+    # TODO 關於文字(267, 114, 1549, 862)
+    # 最外層的 vbox，用來定位整個主畫面的起點
+# 【修改 1】最外層改用 fixed，允許內部的元件透過絕對坐標自由定位
+    fixed:
 
-        text "程式設計（二）期末專題" size 56 bold True color "#000000"
-        text "- 遊戲製作：許靖妤" size 48 color "#000000"
-        text "- 聲明：本遊戲劇情受真實事件啟發並進行改編，部分情節與\n設定為虛構創作，如有雷同，純屬巧合。" size 48 color "#000000"
-        
-        # 較長的文字可以使用 \n 來換行，避免超出畫面邊界
-        text "- 劇情靈感：YouTuber「自說自話的總裁」——\n{a=https://www.youtube.com/watch?si=wh2G8oP4qagpJELU&v=zeluE32TSoc}《1990年，一支蘇聯小隊消失，找到時，6人變成了8人？...》{/a}" size 48 color "#000000"
-        
-        text "- 圖片素材：Gemini AI 生成" size 48 color "#000000"
+        # 【位置 A】大標題與滾動視窗包在一起
+        vbox:
+            xpos 267 
+            ypos 114
+            spacing 25 # 標題與下方滾動內容之間的間距
 
-        null height 30 # 與下方引擎資訊保留一點空白距離
+            # 1. 固定在最上面的大標題
+            text "程式設計（二）期末專題" size 56 bold True color "#000000" style "text"
 
-        # 保留 Ren'Py 預設的引擎與版本資訊 (如果你不需要可以將這兩行刪除)
-        text _("版本 [config.version!t]") size 40 color "#000000"
-        text _("使用 {a=https://www.renpy.org/}Ren'Py{/a} [renpy.version_only] 製作。") size 40 color "#000000"
-    
+            # 2. 下方的滾動視窗
+            viewport id "about_text":
+                xmaximum 1549
+                ymaximum 750
+                
+                draggable True      
+                mousewheel True     
+                # 【修改 2】拿掉內建的 scrollbars "vertical"，因為下方你已經自訂了 vbar
+                
+                # 滾動視窗內部的 vbox（放詳細內容）
+                vbox:
+                    spacing 18 
+                    xmaximum 1400
+
+                    text "- 遊戲製作：許靖妤" size 48 color "#000000" style "text"
+                    text "- 聲明：本遊戲劇情受真實事件啟發並進行改編，部分情節與\n設定為虛構創作，如有雷同，純屬巧合。" size 48 color "#000000" style "text"
+                    
+                    text "- 劇情靈感：YouTuber「自說自話的總裁」——\n{a=https://www.youtube.com/watch?si=wh2G8oP4qagpJELU&v=zeluE32TSoc}《1990年，一支蘇聯小隊消失，找到時，6人變成了8人？...》{/a}" size 48 color "#000000" style "text"
+                    
+                    text "- 圖片素材：Gemini AI 生成" size 48 color "#000000" style "text"
+
+                    null height 30 
+
+                    text _("版本 [config.version!t]") size 40 color "#000000" style "text"
+                    text _("使用 {a=https://www.renpy.org/}Ren'Py{/a} [renpy.version_only] 製作。") size 40 color "#000000" style "text"
+
+        # 【位置 B】獨立定位的自訂滾動條（因為在外層是 fixed，這裡的 xpos 1763 才會真正生效！）
+        vbar value YScrollValue("about_text"):#(1756, 203, 62, 775)
+            xpos 1763
+            ypos 203
+            xsize 51
+            ysize 775
+            thumb Solid("#000000f1")
 
 style about_label is gui_label
 style about_label_text is gui_label_text
@@ -889,9 +914,24 @@ style history_label_text:
 ## and gamepad_help) 來顯示實際幫助。
 
 screen help():
-
     tag menu
     modal True
+
+    # 1. 直接讀取完整清單（固定 7 頁），不再過濾
+    $ total_chars = len(help_characters)
+    
+    # 取得當前頁面的角色資料
+    $ char = help_characters[current_char_index]
+    
+    # 2. 檢查當前角色是否已解鎖 (回傳 True 或 False)
+    $ is_unlocked = eval(char["condition"])
+
+    $ display_avatar = char["avatar"]
+    if display_avatar == "player":
+        if persistent.pet == "cat":
+            $ display_avatar = "gui/avatar_player_cat.png"
+        else:
+            $ display_avatar = "gui/avatar_player_dog.png"
     imagemap:
         ground 'gui/Help_idle.PNG'
         idle 'gui/Help_idle.PNG'
@@ -900,13 +940,94 @@ screen help():
         hotspot (1751, 104, 71, 72) action If(main_menu, true=Hide("help"), false=Return())              # X
         hotspot (142, 401, 71, 73) action If(main_menu, true=Hide("help"), false=ShowMenu("main_menu"))  # Home
         hotspot (139, 488, 78, 74) action Preference("all mute", "toggle")  # Volume
-        hotspot (142, 581, 70, 70) action ShowMenu("about")                 # Abuot
+        hotspot (142, 581, 70, 70) action ShowMenu("about")                 # About
         hotspot (142, 670, 71, 70) action ShowMenu("help")                  # Help
         hotspot (141, 758, 72, 71) action ShowMenu("preferences")           # Setting
         hotspot (142, 848, 72, 69) action ShowMenu("load")                  # Load
         hotspot (142, 936, 72, 73) action Quit(confirm=False)               # Quit
 
+    # 內容容器
+    hbox:
+        xpos 336      
+        ypos 262          
+        #spacing 50        
 
+        # 【左邊：頭像區判斷】
+        if is_unlocked:
+            # 已解鎖：顯示正常頭像
+            add display_avatar yalign 0.0 maxsize (515, 565)#(332, 263, 515, 565)
+        else:
+            # 未解鎖：顯示一張問號替代圖（請確保 gui 資料夾下有這張圖，或改成你現有的黑影圖）
+            add "gui/avatar_locked.png" yalign 0.0 maxsize (515, 565)
+
+        # 【右邊：文字訊息區】(972, 269) 
+        vbox:
+            xpos 40
+            ypos 20
+            spacing 20
+            xminimum 800
+            xmaximum 800
+
+            # 無論解鎖與否，都顯示角色名稱
+            text char["name"]:
+                size 40
+                bold True
+                color "#000000"
+
+            # 說明文字判斷
+            if is_unlocked:
+                # 已解鎖：顯示詳細介紹
+                text char["desc"]:
+                    size 34
+                    color "#000000"
+                    line_spacing 10 
+            else:
+                # 未解鎖：只顯示問號
+                text "？？？":
+                    size 34
+                    color "#888888" # 沒解鎖時用灰色文字暗示
+                    line_spacing 10 
+
+    # 下方切換分頁按鈕（使用 total_chars 固定的總頁數）
+    hbox:
+        xpos 900
+        ypos 850
+        spacing 40
+
+        if current_char_index > 0:
+            textbutton "<":
+                action SetVariable("current_char_index", current_char_index - 1)
+                text_bold True          
+                text_size 28            
+                text_idle_color "#000000"  
+                text_hover_color "#4472C4" 
+        else:
+            textbutton "<":
+                action None
+                text_bold True
+                text_size 28
+                text_idle_color "#555555"  
+
+        # 顯示總頁數（例如：1 / 7）
+        text "[current_char_index + 1] / [total_chars]":
+            size 28 
+            yalign 0.5 
+            bold True
+            color "#000000"
+
+        if current_char_index < total_chars - 1:
+            textbutton ">":
+                action SetVariable("current_char_index", current_char_index + 1)
+                text_bold True          
+                text_size 28            
+                text_idle_color "#000000"  
+                text_hover_color "#4472C4" 
+        else:
+            textbutton ">":
+                action None
+                text_bold True
+                text_size 28
+                text_idle_color "#555555"
 
 
 ################################################################################
@@ -1117,22 +1238,6 @@ screen nvl(dialogue, items=None):
         # base_bar Solid("#ffffff33")  # (可選) 滾動條底槽的顏色
         thumb Solid("#000000f1")       # 滾動塊的顏色
 
-    #bar:
-    #    value nvl_progress    # 當前數值
-    #    range 100         # 最大數值
-        
-        # 精確座標設定
-    #    xpos 267
-    #    ypos 934
-    #    xsize 1475
-    #    ysize 44
-        
-        # 樣式自訂
-    #    left_bar Solid("#4caf50")   # 已完成部分的顏色 (綠色)
-    #    right_bar Solid("#cccccc")  # 未完成部分的顏色 (灰色)
-    #    thumb None                   # 進度條通常不需要滑塊，設為 None
-    
-    #add SideImage() xalign 0.0 yalign 1.0
 
 
 screen nvl_dialogue(dialogue):
