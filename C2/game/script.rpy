@@ -411,7 +411,7 @@ label CH1_3:    #訓練
     nvl_narrator "……"
     nvl_narrator "在我找到回去的方法之前，"
     nvl_narrator "我決定先在這棟木屋住下來。"
-    nvl_narrator "日子一天一天的過，我漸漸跟他培養起感情，"
+    nvl_narrator "日子一天一天的過去，我漸漸跟他培養起感情，"
     nvl_narrator "也逐漸習慣了這個身體。"
    
     nvl_narrator "我發現他們似乎就是影片中的登山隊，"
@@ -555,7 +555,8 @@ label CH2_4:    #雪洞
     $ persistent.unlocked_ch2_4 = True
     $ cave_investigation_count = 0
     scene cave_bg
-    "既然來到這裡了，我決定悄悄在狹小的洞穴裡巡視，看看大家都在做些什麼。"
+    "我和隊員們擠在狹小的雪洞中，並用卡式爐取暖。"
+    "既然來到這裡了，我決定悄悄在洞穴裡巡視，看看大家都在做些什麼。"
     nvl clear
     jump cave_loop
 label cave_loop:
@@ -633,6 +634,12 @@ label click_heat:
         "推倒卡式爐" if persistent.unlocked_ch3_5 or persistent.unlocked_ch3_BE5:
             nvl clear
             jump CH2_BE2
+    jump cave_loop
+label click_radio:
+    "「滋…滋…滋…」"
+    "在隊長列文結束通話之後，對講機仍然持續發出聲響。"
+    "我悄悄靠過去，發現頻道仍然是在409，"
+    "聲音也還開著，看來是因為訊號不良才會發出滋滋聲。"
     jump cave_loop
 label CH2_4_end:
     nvl clear
@@ -877,9 +884,9 @@ label CH3_3:    #爭執
             nvl_narrator "我嘗試接通無線電，"
             nvl_narrator "但對講機的頻道已經跑掉，"
             nvl_narrator "我需要調整到正確的頻道:"
-            $ user_input = renpy.input("請輸入正確的頻道：")
-            $ is_correct = my_lib.check_password(user_input.encode('utf-8'))
-            if is_correct == 1:
+
+            $ user_input = renpy.call_screen("popup_input_nvl", prompt="請輸入正確的頻道：")
+            if user_input == "409":
                 jump CH3_GE2
             nvl_narrator "列文發現無線電被搶走而追了上來，"
             nvl_narrator "隊員們也緊追其後。"
@@ -1436,7 +1443,7 @@ label puzzle_main_loop:
         $ add_puzzle_text("我靠近生存裝備，都是一些過夜的裝備像是帳篷、睡袋、睡墊，因為他們這次只是單日的適應性訓練，所以沒有帶上這些裝備。")
         jump puzzle_main_loop
 
-    # ==================== 【萬用錯誤防呆】 ====================
+    # 防呆
     elif v == "聞":
         $ add_puzzle_text("我用鼻子嗅了嗅，什麼味道也沒有。")
         jump puzzle_main_loop

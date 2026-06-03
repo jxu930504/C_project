@@ -570,7 +570,7 @@ screen about():
                     
                     text "- 劇情靈感：YouTuber「自說自話的總裁」——\n{a=https://www.youtube.com/watch?si=wh2G8oP4qagpJELU&v=zeluE32TSoc}《1990年，一支蘇聯小隊消失，找到時，6人變成了8人？...》{/a}" size 48 color "#000000" style "text"
                     
-                    text "- 圖片素材：Gemini AI 生成" size 48 color "#000000" style "text"
+                    text "- 圖片素材：Gemini AI 輔助生成" size 48 color "#000000" style "text"
 
                     null height 30 
 
@@ -1505,7 +1505,9 @@ screen cave_exploration_screen():
         hotspot (1014, 442, 120, 351) action Jump("click_ogin")          # 4. 奧金
         hotspot (759, 424, 186, 343) action Jump("click_burgin")         # 5. 布爾金
         hotspot (291, 421, 455, 560) action Jump("click_voronin_raza")  # 6. 沃寧與拉扎   
-        hotspot (924, 843, 114, 95) action Jump("click_heat")           # 7. 卡式爐   
+        hotspot (924, 843, 114, 95) action Jump("click_heat")           # 7. 卡式爐  
+        if  (checked_levin):
+            hotspot(1491, 559, 58, 89) action Jump("click_radio")    
         
     use quick_menu
 screen cave_choice(items, dialogue=None):
@@ -1834,3 +1836,45 @@ screen popup_input(prompt):
                 textbutton "取消":
                     action Jump("puzzle_main_loop") # 按下後回傳 None 代表取消
 
+screen popup_input_nvl(prompt):
+    zorder 100
+    default current_text = ""
+
+    # 確保玩家不能點擊背景
+    modal True 
+    
+    # 半透明黑色背景 
+    add "#00000080" 
+
+    # 彈出視窗框架
+    frame:
+        xalign 0.5
+        yalign 0.5
+        xsize 450 
+        padding (30, 30)
+
+        vbox:
+            xalign 0.5
+            spacing 20
+
+            # 顯示提示文字
+            text prompt:
+                xalign 0.5
+                text_align 0.5
+
+            # 輸入框
+            input:
+                id "input"
+                xalign 0.5
+                length 20 
+                # 【修改】將輸入框的值綁定到 current_text 變數
+                value ScreenVariableInputValue("current_text")
+
+            hbox:
+                xalign 0.5
+                spacing 40 # 兩個按鈕之間的距離
+
+                # 確認按鈕
+                textbutton "確認":
+                    # 按下後，回傳目前綁定的文字變數
+                    action Return(current_text) 
