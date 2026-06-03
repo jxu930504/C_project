@@ -522,7 +522,6 @@ style return_button:
 ## 此畫面提供有關遊戲和Ren'Py的製作人員名單和版權資訊。
 ##
 ## 這個畫面沒有什麼特別的，因此它也可以作為如何製作自訂螢幕的範例。
-## TODO: 更新資訊
 screen about():
     tag menu
     modal True
@@ -540,10 +539,6 @@ screen about():
         hotspot (142, 848, 72, 69) action ShowMenu("load")                  # Load
         hotspot (142, 936, 72, 73) action Quit(confirm=False)               # Quit
 
-    ## 此 use 語句包含此畫面中的 game_menu 畫面。然後，vbox 子項將包含在
-    ## game_menu 畫面內的視口內
-    # TODO 關於文字(267, 114, 1549, 862)
-    # 最外層的 vbox，用來定位整個主畫面的起點
 # 【修改 1】最外層改用 fixed，允許內部的元件透過絕對坐標自由定位
     fixed:
 

@@ -110,9 +110,9 @@ init python:
         },
         {
             "name": "隊醫 法布",
-            "avatar": "gui/unlock_fabu.png",
+            "avatar": "gui/avatar_fabu.png",
             "desc": "精通醫學，是團隊中技術最強悍、學歷最高的成員。熟知高山的地形與氣候且性格沉穩，能協助隊長判斷。",
-            "condition": "persistent.unlock_player"
+            "condition": "persistent.unlock_fabu"
         },
         {
             "name": "隊員 沃寧",
@@ -142,7 +142,6 @@ init python:
     def get_unlocked_characters():
         unlocked = []
         for char in help_characters:
-            # eval() 會去抓取當前遊戲中 unlock_fabu 的 True 或 False 狀態
             if eval(char["condition"]): 
                 unlocked.append(char)
         return unlocked
